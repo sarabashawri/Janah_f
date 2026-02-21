@@ -14,8 +14,6 @@ class _SupportScreenState extends State<SupportScreen> {
   final _messageController = TextEditingController();
   bool _isLoading = false;
 
-  static const Color _bg = Color(0xFFF4EFEB); // ✅ اللون الموحد
-
   @override
   void dispose() {
     _subjectController.dispose();
@@ -44,7 +42,7 @@ class _SupportScreenState extends State<SupportScreen> {
         _messageController.clear();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('تم إرسال رسالتك بنجاح. سنتواصل معك قريباً'),
+            content: Text('تم إرسال رسالتك بنجاح'),
             backgroundColor: Color(0xFF00D995),
           ),
         );
@@ -57,35 +55,46 @@ class _SupportScreenState extends State<SupportScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: _bg, // ✅ هنا
+        backgroundColor: const Color(0xFFF4EFEB),
         body: SafeArea(
           child: Column(
             children: [
-              // Header
+              // Header - نفس Login بالضبط
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(24),
+                height: 80,
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF3D5A6C), Color(0xFF4A7B91)],
+                  color: Color(0xFF3D5A6C),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Stack(
                   children: [
-                    const Text(
-                      'تواصل مع الدعم',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                    // السهم على اليسار - نفس Login
+                    Positioned(
+                      right: 16,
+                      top: 20,
+                      child: IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 28,
+                        ),
                       ),
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.arrow_forward, color: Colors.white),
+                    // النص في المنتصف
+                    const Center(
+                      child: Text(
+                        'تواصل مع الدعم',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -97,59 +106,191 @@ class _SupportScreenState extends State<SupportScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Contact Methods
+                      // ✅ الترتيب الصحيح: اتصال، واتساب، بريد
                       Row(
                         children: [
                           Expanded(
                             child: _buildContactMethod(
-                              icon: Icons.email_outlined,
-                              label: 'بريد',
-                              onTap: () => _launchUrl('mailto:support@janah.sa'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildContactMethod(
-                              icon: Icons.message_outlined,
-                              label: 'واتساب',
-                              onTap: () =>
-                                  _launchUrl('https://wa.me/966501234567'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildContactMethod(
                               icon: Icons.phone_outlined,
                               label: 'اتصال',
+                              color: const Color(0xFF2196F3),
                               onTap: () => _launchUrl('tel:+966501234567'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildContactMethod(
+                              icon: Icons.chat_bubble_outline,
+                              label: 'واتساب',
+                              color: const Color(0xFF00BFA5),
+                              onTap: () => _launchUrl('https://wa.me/966501234567'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildContactMethod(
+                              icon: Icons.email_outlined,
+                              label: 'بريد',
+                              color: const Color(0xFFE91E63),
+                              onTap: () => _launchUrl('mailto:support@janah.sa'),
                             ),
                           ),
                         ],
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
-                      // Contact Info Card
-                      _card(
-                        child: Column(
+                      // الهاتف
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
                           children: [
-                            _buildContactInfoRow(
-                              icon: Icons.phone,
-                              label: 'الهاتف',
-                              value: '+966 50 123 4567',
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE3F2FD),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.phone,
+                                color: Color(0xFF2196F3),
+                                size: 22,
+                              ),
                             ),
-                            const SizedBox(height: 16),
-                            _buildContactInfoRow(
-                              icon: Icons.email,
-                              label: 'البريد الإلكتروني',
-                              value: 'support@janah.sa',
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'الهاتف',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF9E9E9E),
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '+966 50 123 4567',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 16),
-                            _buildContactInfoRow(
-                              icon: Icons.access_time,
-                              label: 'خدمة الدعم متاحة 24/7',
-                              value: 'نحن هنا لمساعدتك في أي وقت',
-                              isLast: true,
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // البريد
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F5E9),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.email,
+                                color: Color(0xFF4CAF50),
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'البريد الإلكتروني',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF9E9E9E),
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'support@janah.sa',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // ✅ خدمة 24/7 - اللون من فيقما
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.access_time,
+                              color: Color(0xFF2196F3),
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'خدمة الدعم متاحة 24/7',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF2196F3),
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    'نحن هنا لمساعدتك في أي وقت',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF1976D2),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -157,6 +298,7 @@ class _SupportScreenState extends State<SupportScreen> {
 
                       const SizedBox(height: 24),
 
+                      // إرسال رسالة
                       const Text(
                         'إرسال رسالة',
                         style: TextStyle(
@@ -166,8 +308,20 @@ class _SupportScreenState extends State<SupportScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Send Message Form
-                      _card(
+                      // Form
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
                         child: Form(
                           key: _formKey,
                           child: Column(
@@ -181,11 +335,32 @@ class _SupportScreenState extends State<SupportScreen> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              _buildInput(
+                              TextFormField(
                                 controller: _subjectController,
-                                hintText: 'عنوان الموضوع',
-                                maxLines: 1,
-                                validatorMsg: 'هذا الحقل مطلوب',
+                                decoration: InputDecoration(
+                                  hintText: 'عنوان الموضوع',
+                                  hintStyle: const TextStyle(fontSize: 13),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2),
+                                  ),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF9F9F9),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'هذا الحقل مطلوب';
+                                  }
+                                  return null;
+                                },
                               ),
                               const SizedBox(height: 16),
                               const Text(
@@ -196,11 +371,33 @@ class _SupportScreenState extends State<SupportScreen> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              _buildInput(
+                              TextFormField(
                                 controller: _messageController,
-                                hintText: 'اكتب رسالتك هنا...',
                                 maxLines: 5,
-                                validatorMsg: 'هذا الحقل مطلوب',
+                                decoration: InputDecoration(
+                                  hintText: 'اكتب رسالتك هنا...',
+                                  hintStyle: const TextStyle(fontSize: 13),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2),
+                                  ),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF9F9F9),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'هذا الحقل مطلوب';
+                                  }
+                                  return null;
+                                },
                               ),
                               const SizedBox(height: 20),
                               SizedBox(
@@ -208,15 +405,14 @@ class _SupportScreenState extends State<SupportScreen> {
                                 height: 56,
                                 child: ElevatedButton.icon(
                                   onPressed: _isLoading ? null : _sendMessage,
-                                  icon:
-                                      const Icon(Icons.send, color: Colors.white),
+                                  icon: const Icon(Icons.send, color: Colors.white),
                                   label: _isLoading
                                       ? const SizedBox(
-                                          width: 22,
-                                          height: 22,
+                                          width: 20,
+                                          height: 20,
                                           child: CircularProgressIndicator(
                                             color: Colors.white,
-                                            strokeWidth: 2.5,
+                                            strokeWidth: 2,
                                           ),
                                         )
                                       : const Text(
@@ -230,48 +426,10 @@ class _SupportScreenState extends State<SupportScreen> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF3D5A6C),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      // FAQ Link
-                      InkWell(
-                        onTap: () {},
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE3F2FD),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.help_outline,
-                                color: Color(0xFF2196F3),
-                              ),
-                              const SizedBox(width: 12),
-                              const Expanded(
-                                child: Text(
-                                  'هل لديك استفسار؟\nفريق الدعم جاهز للمساعدة عبر جميع القنوات',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF2196F3),
-                                  ),
-                                ),
-                              ),
-                              const Icon(
-                                Icons.arrow_back,
-                                color: Color(0xFF2196F3),
-                                size: 20,
                               ),
                             ],
                           ),
@@ -288,94 +446,25 @@ class _SupportScreenState extends State<SupportScreen> {
     );
   }
 
-  // ===== Helpers =====
-
-  Widget _card({required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-
-  Widget _buildInput({
-    required TextEditingController controller,
-    required String hintText,
-    required int maxLines,
-    required String validatorMsg,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: TextFormField(
-        controller: controller,
-        maxLines: maxLines,
-        textAlign: TextAlign.right,
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintTextDirection: TextDirection.rtl,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 1),
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        ),
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) return validatorMsg;
-          return null;
-        },
-      ),
-    );
-  }
-
   Widget _buildContactMethod({
     required IconData icon,
     required String label,
+    required Color color,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -384,14 +473,10 @@ class _SupportScreenState extends State<SupportScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF3D5A6C).withOpacity(0.1),
+                color: color.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                color: const Color(0xFF3D5A6C),
-                size: 24,
-              ),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 8),
             Text(
@@ -404,54 +489,6 @@ class _SupportScreenState extends State<SupportScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildContactInfoRow({
-    required IconData icon,
-    required String label,
-    required String value,
-    bool isLast = false,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF3D5A6C).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            icon,
-            color: const Color(0xFF3D5A6C),
-            size: 20,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF9E9E9E),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
