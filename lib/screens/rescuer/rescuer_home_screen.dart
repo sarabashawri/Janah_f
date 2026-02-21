@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'missions_list_screen.dart';
+import 'rescuer_profile_screen.dart';
 
 class RescuerHomeScreen extends StatefulWidget {
   const RescuerHomeScreen({super.key});
@@ -15,7 +16,7 @@ class _RescuerHomeScreenState extends State<RescuerHomeScreen> {
     HomeDashboard(),
     MissionsListScreen(),
     Center(child: Text('الخريطة')),
-    Center(child: Text('الملف الشخصي')),
+    RescuerProfileScreen(),
   ];
 
   @override
