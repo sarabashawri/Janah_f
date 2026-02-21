@@ -22,14 +22,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   void _onTapNav(int index) {
     if (index == _selectedIndex) return;
-    setState(() => _selectedIndex = index);
 
     if (index == 0) {
       Navigator.of(context).pushReplacementNamed('/guardian/home');
     } else if (index == 1) {
-      Navigator.of(context).pushReplacementNamed('/guardian/reports');
+      // روح للرئيسية مع argument يحدد tab البلاغات
+      Navigator.of(context).pushReplacementNamed('/guardian/home', arguments: 1);
     } else if (index == 2) {
-      Navigator.of(context).pushReplacementNamed('/guardian/profile');
+      Navigator.of(context).pushReplacementNamed('/guardian/home', arguments: 2);
     }
   }
 
@@ -117,67 +117,49 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 24),
+                height: 80,
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [kPrimary, kPrimary2],
-                  ),
+                  color: kPrimary,
                   borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(26),
-                    bottomRight: Radius.circular(26),
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Stack(
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'التنبيهات',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _unreadCount == 0
-                                ? 'لا توجد تنبيهات جديدة'
-                                : 'لديك $_unreadCount تنبيهات جديدة',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
+                    // السهم على اليمين
+                    Positioned(
+                      right: 4,
+                      top: 0,
+                      bottom: 0,
+                      child: IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 26),
                       ),
                     ),
-                    Row(
-                      children: [
-                        TextButton(
-                          onPressed: _unreadCount == 0 ? null : _markAllAsRead,
-                          child: Text(
-                            'قراءة الكل',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: _unreadCount == 0
-                                  ? Colors.white54
-                                  : Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
+                    // العنوان في الوسط
+                    const Center(
+                      child: Text(
+                        'التنبيهات',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                    ),
+                    // قراءة الكل على اليسار
+                    Positioned(
+                      left: 4,
+                      top: 0,
+                      bottom: 0,
+                      child: TextButton(
+                        onPressed: _unreadCount == 0 ? null : _markAllAsRead,
+                        child: Text(
+                          'قراءة الكل',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: _unreadCount == 0 ? Colors.white38 : Colors.white,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.arrow_forward,
-                              color: Colors.white),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
