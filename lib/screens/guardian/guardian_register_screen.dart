@@ -14,7 +14,6 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
@@ -53,185 +52,187 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF4EFEB), // ✅ اللون الجديد
+        backgroundColor: const Color(0xFFF4EFEB),
         body: SafeArea(
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // Header
+                // Header - نفس اللوقين
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 30,
-                    horizontal: 24,
-                  ),
+                  height: 80,
                   decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xFF3D5A6C), Color(0xFF4A7B91)],
-                    ),
+                    color: Color(0xFF3D5A6C),
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(30),
                       bottomRight: Radius.circular(30),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Stack(
                     children: [
-                      const Text(
-                        'إنشاء حساب جديد',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                      // السهم على اليسار
+                      Positioned(
+                        right: 16,
+                        top: 20,
+                        child: IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                            size: 28,
+                          ),
                         ),
                       ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon:
-                            const Icon(Icons.arrow_forward, color: Colors.white),
+                      // النص في المنتصف
+                      const Center(
+                        child: Text(
+                          'إنشاء حساب جديد',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
 
-                // Form
+                // المربع الأبيض حول الفورم
                 Padding(
                   padding: const EdgeInsets.all(24.0),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Name
-                        const Text(
-                          'الاسم الكامل',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          controller: _nameController,
-                          hint: 'أدخل الاسم الكامل',
-                          icon: Icons.person_outline,
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Email
-                        const Text(
-                          'البريد الإلكتروني',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          controller: _emailController,
-                          hint: 'example@email.com',
-                          icon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Phone
-                        const Text(
-                          'رقم الجوال',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          controller: _phoneController,
-                          hint: '05XXXXXXXX',
-                          icon: Icons.phone_outlined,
-                          keyboardType: TextInputType.phone,
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Password
-                        const Text(
-                          'كلمة المرور',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          controller: _passwordController,
-                          hint: 'أدخل كلمة المرور',
-                          icon: Icons.lock_outline,
-                          obscureText: _obscurePassword,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // الاسم الكامل
+                          const Text(
+                            'الاسم الكامل',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
-                            onPressed: () {
-                              setState(() =>
-                                  _obscurePassword = !_obscurePassword);
-                            },
                           ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // Confirm Password
-                        const Text(
-                          'تأكيد كلمة المرور',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            controller: _nameController,
+                            hint: 'أدخل الاسم الكامل',
+                            icon: Icons.person_outline,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildTextField(
-                          controller: _confirmPasswordController,
-                          hint: 'أعد إدخال كلمة المرور',
-                          icon: Icons.lock_outline,
-                          obscureText: _obscureConfirmPassword,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscureConfirmPassword
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
+
+                          const SizedBox(height: 20),
+
+                          // البريد الإلكتروني
+                          const Text(
+                            'البريد الإلكتروني',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
-                            onPressed: () {
-                              setState(() => _obscureConfirmPassword =
-                                  !_obscureConfirmPassword);
-                            },
                           ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Terms
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE0E0E0)),
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            controller: _emailController,
+                            hint: 'example@email.com',
+                            icon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
                           ),
-                          child: Row(
+
+                          const SizedBox(height: 20),
+
+                          // رقم الجوال
+                          const Text(
+                            'رقم الجوال',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            controller: _phoneController,
+                            hint: '05XXXXXXXX',
+                            icon: Icons.phone_outlined,
+                            keyboardType: TextInputType.phone,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // كلمة المرور
+                          const Text(
+                            'كلمة المرور',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            controller: _passwordController,
+                            hint: 'أدخل كلمة المرور',
+                            icon: Icons.lock_outline,
+                            obscureText: _obscurePassword,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() => _obscurePassword = !_obscurePassword);
+                              },
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // تأكيد كلمة المرور
+                          const Text(
+                            'تأكيد كلمة المرور',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildTextField(
+                            controller: _confirmPasswordController,
+                            hint: 'أعد إدخال كلمة المرور',
+                            icon: Icons.lock_outline,
+                            obscureText: _obscureConfirmPassword,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                              ),
+                              onPressed: () {
+                                setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                              },
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // الشروط والأحكام
+                          Row(
                             children: [
                               Checkbox(
                                 value: _agreeToTerms,
                                 onChanged: (value) {
-                                  setState(() =>
-                                      _agreeToTerms = value ?? false);
+                                  setState(() => _agreeToTerms = value ?? false);
                                 },
                                 activeColor: const Color(0xFF3D5A6C),
                               ),
@@ -243,45 +244,54 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
                               ),
                             ],
                           ),
-                        ),
 
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 24),
 
-                        // Register Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleRegister,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF3D5A6C),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
+                          // زر إنشاء الحساب
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _handleRegister,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF3D5A6C),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
-                            ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white)
-                                : const Text(
-                                    'إنشاء الحساب',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
+                              child: _isLoading
+                                  ? const CircularProgressIndicator(color: Colors.white)
+                                  : const Text(
+                                      'إنشاء الحساب',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                  ),
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 16),
+                          const SizedBox(height: 20),
 
-                        // Login Link
-                        Center(
-                          child: Row(
+                          // لديك حساب؟
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              const Text(
+                                'لديك حساب بالفعل؟ ',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF757575),
+                                ),
+                              ),
                               TextButton(
                                 onPressed: () => Navigator.of(context).pop(),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
                                 child: const Text(
                                   'تسجيل الدخول',
                                   style: TextStyle(
@@ -291,17 +301,10 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
                                   ),
                                 ),
                               ),
-                              const Text(
-                                'لديك حساب بالفعل؟',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF757575),
-                                ),
-                              ),
                             ],
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -321,46 +324,42 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
     TextInputType? keyboardType,
     Widget? suffixIcon,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        textDirection: keyboardType == TextInputType.emailAddress ||
-                keyboardType == TextInputType.phone
-            ? TextDirection.ltr
-            : TextDirection.rtl,
-        textAlign: TextAlign.right,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintTextDirection: TextDirection.rtl,
-          prefixIcon: Icon(icon),
-          suffixIcon: suffixIcon,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.white,
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      textDirection: keyboardType == TextInputType.emailAddress ||
+              keyboardType == TextInputType.phone
+          ? TextDirection.ltr
+          : TextDirection.rtl,
+      textAlign: TextAlign.right,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintTextDirection: TextDirection.rtl,
+        hintStyle: const TextStyle(fontSize: 13),
+        prefixIcon: Icon(icon),
+        suffixIcon: suffixIcon,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
         ),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'هذا الحقل مطلوب';
-          }
-          return null;
-        },
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2),
+        ),
+        filled: true,
+        fillColor: const Color(0xFFF9F9F9),
       ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'هذا الحقل مطلوب';
+        }
+        return null;
+      },
     );
   }
 }
