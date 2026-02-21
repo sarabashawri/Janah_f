@@ -12,18 +12,31 @@ class GuardianHomeScreen extends StatefulWidget {
 class _GuardianHomeScreenState extends State<GuardianHomeScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeDashboard(),
-    ReportsListScreen(),
-    ProfileScreen(),
-  ];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is int) {
+      _selectedIndex = args;
+    }
+  }
+
+  void _goToReports() {
+    setState(() => _selectedIndex = 1);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      HomeDashboard(onViewAllReports: _goToReports),
+      const ReportsListScreen(),
+      const ProfileScreen(),
+    ];
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        body: _screens[_selectedIndex],
+        body: screens[_selectedIndex],
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: (index) => setState(() => _selectedIndex = index),
@@ -55,255 +68,374 @@ class _GuardianHomeScreenState extends State<GuardianHomeScreen> {
 }
 
 class HomeDashboard extends StatelessWidget {
-  const HomeDashboard({super.key});
+  final VoidCallback? onViewAllReports;
+  const HomeDashboard({super.key, this.onViewAllReports});
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      // ✅ خلفية موحدة للداشبورد
       child: Container(
         color: const Color(0xFFF4EFEB),
         child: CustomScrollView(
           slivers: [
-            // Header
+            // Header - الأيقونة قبل الكلام
             SliverToBoxAdapter(
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Color(0xFF3D5A6C), Color(0xFF4A7B91)],
+                  color: Color(0xFF3D5A6C),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // الأيقونة + النص
+                    Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 28,
+                          backgroundColor: Colors.white24,
+                          child: Icon(Icons.person, color: Colors.white, size: 32),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'مرحباً بك',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white70,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'أحمد محمد',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'جناح - نظام البحث والإنقاذ',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white60,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    // الإشعارات
+                    Stack(
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            Navigator.of(context).pushNamed('/guardian/notifications');
+                          },
+                          icon: const Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFEF5350),
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 18,
+                              minHeight: 18,
+                            ),
+                            child: const Text(
+                              '3',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+            // المربع الأبيض الأول - الزر جنب النص
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // النص على اليمين
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'بلّغ عن الطفل المفقود',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'قم بتقديم بلاغ جديد للبحث عن طفل مفقود',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF757575),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      // الزر الصغير على اليسار
+                      SizedBox(
+                        width: 90,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pushNamed('/guardian/create-report');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF3D5A6C),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.zero,
+                          ),
+                          child: const Text(
+                            'بلّغ الآن',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            const CircleAvatar(
-                              radius: 24,
-                              backgroundColor: Colors.white24,
-                              child: Icon(Icons.person, color: Colors.white),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+            // المربع الأبيض الثاني - البلاغات النشطة
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // البلاغات النشطة
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'البلاغات النشطة',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
                             ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
-                                Text(
-                                  'مرحباً بك',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white70,
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              onViewAllReports?.call();
+                            },
+                            child: const Text(
+                              'عرض الكل',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF3D5A6C),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // البلاغ
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF00D995),
+                            width: 2,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            // صف واحد: جاري البحث (يسار) + الاسم والأيقونة (يمين)
+                            Row(
+                              children: [
+                                const CircleAvatar(
+                                  radius: 22,
+                                  backgroundColor: Color(0xFFB0BEC5),
+                                  child: Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                    size: 24,
                                   ),
                                 ),
-                                SizedBox(height: 2),
-                                Text(
-                                  'أحمد محمد',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'محمد أحمد',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: const [
+                                        Icon(
+                                          Icons.location_on,
+                                          size: 14,
+                                          color: Color(0xFFEF5350),
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'بلاغ رقم #1234',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF757575),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF00D995),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Text(
+                                    'جاري البحث',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                        Stack(
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                Navigator.of(context)
-                                    .pushNamed('/guardian/notifications');
+                            const SizedBox(height: 12),
+                            const Divider(height: 1),
+                            const SizedBox(height: 12),
+                            // الصف الأخير: منذ 3 ساعات يسار + عرض التفاصيل يمين
+                            InkWell(
+                              onTap: () {
+                                Navigator.of(context).pushNamed(
+                                  '/guardian/report-details',
+                                  arguments: '#1234',
+                                );
                               },
-                              icon: const Icon(
-                                Icons.notifications_outlined,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-                            Positioned(
-                              right: 8,
-                              top: 8,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFEF5350),
-                                  shape: BoxShape.circle,
-                                ),
-                                constraints: const BoxConstraints(
-                                  minWidth: 18,
-                                  minHeight: 18,
-                                ),
-                                child: const Text(
-                                  '3',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: const [
+                                  Text(
+                                    'منذ 3 ساعات',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF757575),
+                                    ),
                                   ),
-                                  textAlign: TextAlign.center,
-                                ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'عرض التفاصيل',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF3D5A6C),
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Icon(
+                                        Icons.arrow_forward,
+                                        size: 16,
+                                        color: Color(0xFF3D5A6C),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'جناح - نظام البحث والإنقاذ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white70,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // New Report Button
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF3D5A6C), Color(0xFF4A6B7F)],
-                    ),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/guardian/create-report');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: Colors.white24,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.add_alert_outlined,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'بلّغ عن الطفل المفقود',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               ),
             ),
 
-            // Stats Cards
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+            // زر الطوارئ
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        title: 'البلاغات النشطة',
-                        count: '1',
-                        icon: Icons.description,
-                        color: const Color(0xFFFFEB3B),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        title: 'منتهية',
-                        count: '2',
-                        icon: Icons.check_circle,
-                        color: const Color(0xFF00D995),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildStatCard(
-                        title: 'الإجمالي',
-                        count: '3',
-                        icon: Icons.inbox,
-                        color: const Color(0xFF3D5A6C),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Active Reports Section
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'البلاغات النشطة',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed('/guardian/reports');
-                      },
-                      child: const Text(
-                        'عرض الكل',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF3D5A6C),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Active Report Card
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildReportCard(context),
-                  childCount: 1,
-                ),
-              ),
-            ),
-
-            // Emergency Contact
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
                 child: InkWell(
                   onTap: () {},
                   borderRadius: BorderRadius.circular(16),
@@ -324,7 +456,7 @@ class HomeDashboard extends StatelessWidget {
                           child: const Icon(
                             Icons.phone,
                             color: Colors.white,
-                            size: 28,
+                            size: 26,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -351,9 +483,11 @@ class HomeDashboard extends StatelessWidget {
                             ],
                           ),
                         ),
+                        const SizedBox(width: 16),
                         const Icon(
-                          Icons.arrow_back,
+                          Icons.arrow_forward,
                           color: Colors.white,
+                          size: 24,
                         ),
                       ],
                     ),
@@ -362,203 +496,43 @@ class HomeDashboard extends StatelessWidget {
               ),
             ),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+
+            // المربع الأزرق الفاتح مع النص الجديد
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE3F2FD), // أزرق فاتح
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'طفلكم تحت جناحنا\nولن يرتاح الجناح حتى تتحقق لحظة العودة',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black87, // اسود للنص
+                      height: 1.6,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 30)),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard({
-    required String title,
-    required String count,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            count,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Color(0xFF757575),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReportCard(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF00D995), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00D995),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'جاري البحث',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              const Text(
-                'منذ 3 ساعات',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF9E9E9E),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const CircleAvatar(
-                radius: 24,
-                backgroundColor: Color(0xFFE0E0E0),
-                child: Icon(Icons.person, color: Color(0xFF757575)),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'محمد أحمد',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on,
-                          size: 14,
-                          color: Color(0xFFEF5350),
-                        ),
-                        const SizedBox(width: 4),
-                        const Text(
-                          'بلاغ رقم #1234',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF757575),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(
-                Icons.pin_drop,
-                size: 16,
-                color: Color(0xFF757575),
-              ),
-              const SizedBox(width: 6),
-              const Expanded(
-                child: Text(
-                  'حي النزهة، شارع الملك فهد',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF757575),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Divider(),
-          const SizedBox(height: 8),
-          InkWell(
-            onTap: () {
-              Navigator.of(context).pushNamed('/guardian/report-details');
-            },
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'عرض التفاصيل',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF3D5A6C),
-                  ),
-                ),
-                SizedBox(width: 4),
-                Icon(
-                  Icons.arrow_back,
-                  size: 16,
-                  color: Color(0xFF3D5A6C),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
