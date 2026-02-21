@@ -57,12 +57,12 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                     children: [
                       // السهم على اليسار
                       Positioned(
-                        left: 16,
+                        right: 16,
                         top: 20,
                         child: IconButton(
                           onPressed: () => Navigator.of(context).pop(),
                           icon: const Icon(
-                            Icons.arrow_forward,
+                            Icons.arrow_back,
                             color: Colors.white,
                             size: 28,
                           ),
