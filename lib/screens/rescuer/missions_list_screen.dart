@@ -191,7 +191,7 @@ class _MissionsListScreenState extends State<MissionsListScreen>
           ),
           const SizedBox(height: 14),
 
-          // بدل الأرقام: سويتش/تبويبات داخل الهيدر الكحلي
+          // سويتش/تبويبات داخل الهيدر الكحلي
           _buildNavyTabs(),
         ],
       ),
@@ -199,7 +199,6 @@ class _MissionsListScreenState extends State<MissionsListScreen>
   }
 
   Widget _buildNavyTabs() {
-    // حاوية كحلية (بدون شريط أبيض منفصل تحت)
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
@@ -234,7 +233,6 @@ class _MissionsListScreenState extends State<MissionsListScreen>
     required int count,
     required bool highlight,
   }) {
-    // الرقم صار صغير كـ badge داخل السويتش (بدون أرقام كبيرة فوق)
     return Tab(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -271,8 +269,10 @@ class _MissionsListScreenState extends State<MissionsListScreen>
           children: [
             Icon(Icons.inbox_outlined, size: 60, color: Colors.grey.shade400),
             const SizedBox(height: 12),
-            Text('لا توجد بلاغات',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade500)),
+            Text(
+              'لا توجد بلاغات',
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+            ),
           ],
         ),
       );
@@ -303,8 +303,7 @@ class _MissionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = mission.status == 'نشط';
-    final statusColor =
-        isActive ? _activeYellow : _danger.withOpacity(0.15);
+    final statusColor = isActive ? _activeYellow : _danger.withOpacity(0.15);
     final statusTextColor = isActive ? Colors.black87 : _danger;
     final statusLabel = isActive ? 'نشط' : 'مغلقة';
 
@@ -348,12 +347,16 @@ class _MissionCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(mission.childName,
-                          style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w800)),
-                      Text(mission.id,
-                          style: const TextStyle(
-                              fontSize: 12, color: Color(0xFF9E9E9E))),
+                      Text(
+                        mission.childName,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w800),
+                      ),
+                      Text(
+                        mission.id,
+                        style: const TextStyle(
+                            fontSize: 12, color: Color(0xFF9E9E9E)),
+                      ),
                     ],
                   ),
                 ),
@@ -422,7 +425,7 @@ class _MissionCard extends StatelessWidget {
               ),
             ),
 
-            // معلومات الدرون (للبلاغات النشطة فقط)
+            // معلومات الدرون (بدون شريط أخضر)
             if (mission.droneId != null) ...[
               const SizedBox(height: 10),
               Container(
@@ -451,24 +454,15 @@ class _MissionCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Text('جار البحث - ',
-                            style:
-                                TextStyle(fontSize: 11, color: Color(0xFF757575))),
-                        Text('${mission.droneProgress}% من المنطقة',
-                            style:
-                                const TextStyle(fontSize: 11, color: Color(0xFF757575))),
-                        const Spacer(),
-                        SizedBox(
-                          width: 90,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: LinearProgressIndicator(
-                              value: (mission.droneProgress ?? 0) / 100,
-                              backgroundColor: const Color(0xFFE0E0E0),
-                              color: const Color(0xFF00D995),
-                              minHeight: 6,
-                            ),
-                          ),
+                        const Text(
+                          'جار البحث - ',
+                          style:
+                              TextStyle(fontSize: 11, color: Color(0xFF757575)),
+                        ),
+                        Text(
+                          '${mission.droneProgress}% من المنطقة',
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFF757575)),
                         ),
                       ],
                     ),
@@ -481,8 +475,9 @@ class _MissionCard extends StatelessWidget {
             const Divider(height: 1),
             const SizedBox(height: 8),
 
-            // ✅ عرض التفاصيل باليسار لحاله
+            // ✅ عرض التفاصيل في الجهة الثانية (يمين)
             Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton.icon(
                   onPressed: onTap,
@@ -496,7 +491,6 @@ class _MissionCard extends StatelessWidget {
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
                   ),
                 ),
-                const Spacer(),
               ],
             ),
           ],
