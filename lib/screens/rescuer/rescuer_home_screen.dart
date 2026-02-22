@@ -240,11 +240,18 @@ class _HomeDashboardState extends State<HomeDashboard> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('الخريطة العامة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 12),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('الخريطة العامة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 12),
                     // الخريطة
                     ClipRRect(
                       borderRadius: BorderRadius.circular(16),
@@ -285,6 +292,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       ),
                     ),
                   ],
+                ),
                 ),
               ),
             ),
@@ -468,104 +476,103 @@ class _DroneCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // صف 1: "في مهمة" يسار | ID + أيقونة يمين
+          // صف 1: أيقونة + ID يسار | "في مهمة" يمين
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                decoration: BoxDecoration(color: const Color(0xFF3D5A6C), borderRadius: BorderRadius.circular(20)),
-                child: const Text('في مهمة', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
-              ),
               Row(
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(droneId, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-                      const Text('88 ساعة طيران', style: TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
-                    ],
-                  ),
-                  const SizedBox(width: 10),
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(color: const Color(0xFF3D5A6C), borderRadius: BorderRadius.circular(12)),
                     child: const Icon(Icons.flight, color: Colors.white, size: 24),
                   ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(droneId, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                      const Text('88 ساعة طيران', style: TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
+                    ],
+                  ),
                 ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(color: const Color(0xFF3D5A6C), borderRadius: BorderRadius.circular(20)),
+                child: const Text('في مهمة', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          // صف 2: البطارية | الاتصال — مربعين
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: const Color(0xFFF4EFEB), borderRadius: BorderRadius.circular(12)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: const [
+          // صف 2: مربع البطارية يسار | مربع الاتصال يمين (نفس الحجم)
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // البطارية يسار
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: const Color(0xFFF4EFEB), borderRadius: BorderRadius.circular(12)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: const [
                           Icon(Icons.battery_charging_full, size: 14, color: Color(0xFF757575)),
                           SizedBox(width: 4),
                           Text('البطارية', style: TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text('$battery%', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: _batteryColor)),
-                      const SizedBox(height: 6),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(value: battery / 100, backgroundColor: const Color(0xFFE0E0E0), color: _batteryColor, minHeight: 6),
-                      ),
-                    ],
+                        ]),
+                        const SizedBox(height: 6),
+                        Text('$battery%', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: _batteryColor)),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(value: battery / 100, backgroundColor: const Color(0xFFE0E0E0), color: _batteryColor, minHeight: 6),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: const Color(0xFFF4EFEB), borderRadius: BorderRadius.circular(12)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: const [
+                const SizedBox(width: 10),
+                // الاتصال يمين
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: const Color(0xFFF4EFEB), borderRadius: BorderRadius.circular(12)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: const [
                           Icon(Icons.signal_cellular_alt, size: 14, color: Color(0xFF757575)),
                           SizedBox(width: 4),
                           Text('الاتصال', style: TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      const Text('جيد', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF3D5A6C))),
-                    ],
+                        ]),
+                        const SizedBox(height: 6),
+                        const Text('جيد', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF3D5A6C))),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 12),
-          // الموقع + آخر مهمة + نشط الآن
-          Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          // الموقع + آخر مهمة يسار
+          Row(children: [
             const Icon(Icons.location_on, size: 14, color: Color(0xFFEF5350)),
             const SizedBox(width: 4),
             Text(location.split(' - ').first, style: const TextStyle(fontSize: 13, color: Color(0xFF757575))),
           ]),
           const SizedBox(height: 4),
-          Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+          Row(children: [
             const Icon(Icons.access_time, size: 13, color: Color(0xFF9E9E9E)),
             const SizedBox(width: 4),
             Text('آخر مهمة: ${location.contains('#') ? location.split('- ').last : '#1234'}', style: const TextStyle(fontSize: 13, color: Color(0xFF757575))),
           ]),
           const SizedBox(height: 2),
           const Align(
-            alignment: Alignment.centerRight,
+            alignment: Alignment.centerLeft,
             child: Text('نشط الآن', style: TextStyle(fontSize: 13, color: Color(0xFF00D995), fontWeight: FontWeight.w600)),
           ),
           const SizedBox(height: 12),
