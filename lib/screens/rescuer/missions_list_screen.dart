@@ -7,7 +7,7 @@ class _Mission {
   final String location;
   final String time;
   final String description;
-  final String status;
+  final String status; // 'نشط' | 'مغلق'
   final String? droneId;
   final int? droneProgress;
 
@@ -23,6 +23,7 @@ class _Mission {
   });
 }
 
+// بيانات وهمية
 const List<_Mission> _allMissions = [
   _Mission(
     id: '#1235',
@@ -41,6 +42,14 @@ const List<_Mission> _allMissions = [
     status: 'نشط',
     droneId: 'DR-01',
     droneProgress: 65,
+  ),
+  _Mission(
+    id: '#1233',
+    childName: 'عمر خالد',
+    location: 'حي الروضة، شارع العليا',
+    time: 'منذ ساعتين',
+    description: 'يرتدي قميص أحمر',
+    status: 'مغلق',
   ),
 ];
 
@@ -68,6 +77,13 @@ class _MissionsListScreenState extends State<MissionsListScreen>
     _tabController = TabController(length: 3, vsync: this);
   }
 
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
   List<_Mission> _filtered(String type) {
     List<_Mission> list;
     if (type == 'نشط') {
@@ -86,7 +102,6 @@ class _MissionsListScreenState extends State<MissionsListScreen>
               m.location.contains(_searchQuery))
           .toList();
     }
-
     return list;
   }
 
@@ -123,6 +138,7 @@ class _MissionsListScreenState extends State<MissionsListScreen>
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
       color: _navy,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -140,7 +156,7 @@ class _MissionsListScreenState extends State<MissionsListScreen>
           ),
           const SizedBox(height: 12),
 
-          // 🔥 البحث بخط كحلي
+          // ✅ البحث (يظهر الخط + الكتابة كحلي/أسود)
           Container(
             height: 46,
             decoration: BoxDecoration(
@@ -151,6 +167,7 @@ class _MissionsListScreenState extends State<MissionsListScreen>
               controller: _searchController,
               style: const TextStyle(
                 color: _navy,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
               cursorColor: _navy,
@@ -160,23 +177,35 @@ class _MissionsListScreenState extends State<MissionsListScreen>
                 hintStyle: TextStyle(color: Colors.grey),
                 prefixIcon: Icon(Icons.search, color: _navy),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 12),
+                contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
               ),
             ),
           ),
 
           const SizedBox(height: 14),
 
-          TabBar(
-            controller: _tabController,
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: const [
-              Tab(text: 'نشط'),
-              Tab(text: 'جديد'),
-              Tab(text: 'الكل'),
-            ],
+          // ✅ السويتش (نفس القديم كـ Tabs لكن داخل الهيدر)
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.10),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              indicator: BoxDecoration(
+                color: Colors.white.withOpacity(0.18),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
+              dividerColor: Colors.transparent,
+              tabs: const [
+                Tab(text: 'نشط'),
+                Tab(text: 'جديد'),
+                Tab(text: 'الكل'),
+              ],
+            ),
           ),
         ],
       ),
@@ -185,81 +214,196 @@ class _MissionsListScreenState extends State<MissionsListScreen>
 
   Widget _buildList(String type) {
     final missions = _filtered(type);
+    if (missions.isEmpty) {
+      return Center(
+        child: Text(
+          'لا توجد بلاغات',
+          style: TextStyle(color: Colors.grey.shade600),
+        ),
+      );
+    }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: missions.length,
-      itemBuilder: (context, index) {
-        final mission = missions[index];
-        final isActive = mission.status == 'نشط';
+      itemBuilder: (context, index) => _MissionCard(
+        mission: missions[index],
+        onTap: () {
+          // Navigator.of(context).pushNamed('/guardian/report-details');
+        },
+      ),
+    );
+  }
+}
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 14),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isActive
-                  ? _activeYellow.withOpacity(0.6)
-                  : _danger.withOpacity(0.2),
-              width: 1.5,
-            ),
+class _MissionCard extends StatelessWidget {
+  const _MissionCard({required this.mission, required this.onTap});
+
+  final _Mission mission;
+  final VoidCallback onTap;
+
+  static const Color _navy = Color(0xFF3D5A6C);
+  static const Color _bg = Color(0xFFF4EFEB);
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = mission.status == 'نشط';
+    final statusColor =
+        isActive ? const Color(0xFFFFEB3B) : const Color(0xFFEF5350).withOpacity(0.15);
+    final statusTextColor =
+        isActive ? Colors.black87 : const Color(0xFFEF5350);
+    final statusLabel = isActive ? 'نشط' : 'مغلقة';
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isActive
+                ? const Color(0xFFFFEB3B).withOpacity(0.6)
+                : const Color(0xFFEF5350).withOpacity(0.2),
+            width: 1.5,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const CircleAvatar(
-                    backgroundColor: Color(0xFFE0E0E0),
-                    child: Icon(Icons.person, color: Colors.grey),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // الاسم والحالة
+            Row(
+              children: [
+                const CircleAvatar(
+                  radius: 22,
+                  backgroundColor: Color(0xFFE0E0E0),
+                  child: Icon(Icons.person, color: Color(0xFF757575), size: 22),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(mission.childName,
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w700)),
+                      Text(mission.id,
+                          style: const TextStyle(
+                              fontSize: 12, color: Color(0xFF9E9E9E))),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(mission.childName,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold)),
-                        Text(mission.id,
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey)),
-                      ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: statusTextColor,
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? _activeYellow
-                          : _danger.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      isActive ? 'نشط' : 'مغلقة',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color:
-                            isActive ? Colors.black : _danger,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // الموقع
+            Row(
+              children: [
+                const Icon(Icons.location_on, size: 14, color: Color(0xFFEF5350)),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(mission.location,
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF757575))),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+
+            // الوقت
+            Row(
+              children: [
+                const Icon(Icons.access_time, size: 14, color: Color(0xFF9E9E9E)),
+                const SizedBox(width: 4),
+                Text(mission.time,
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            // الوصف
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: _bg,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                mission.description,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF555555)),
+              ),
+            ),
+
+            // معلومات الدرون (بدون شريط أخضر)
+            if (mission.droneId != null) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: _navy.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.flight, size: 14, color: _navy),
+                    const SizedBox(width: 6),
+                    Text(
+                      'الدرون: ${mission.droneId}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: _navy,
                       ),
                     ),
-                  ),
-                ],
+                    const Spacer(),
+                    Text(
+                      'جار البحث - ${mission.droneProgress ?? 0}% من المنطقة',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF757575)),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              const Divider(),
-              const SizedBox(height: 8),
+            ],
 
-              // 🔥 عرض التفاصيل مع سهم معكوس
-              Align(
-                alignment: Alignment.centerLeft,
-                child: InkWell(
-                  onTap: () {},
-                  child: const Row(
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 10),
+
+            // ✅ عرض التفاصيل (مثل ما كان) + السهم معكوس
+            Align(
+              alignment: Alignment.centerLeft,
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
@@ -280,10 +424,10 @@ class _MissionsListScreenState extends State<MissionsListScreen>
                   ),
                 ),
               ),
-            ],
-          ),
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
