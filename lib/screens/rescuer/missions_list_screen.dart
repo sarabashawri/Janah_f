@@ -7,7 +7,7 @@ class _Mission {
   final String location;
   final String time;
   final String description;
-  final String status; // 'نشط' | 'مغلق'
+  final String status;
   final String? droneId;
   final int? droneProgress;
 
@@ -23,7 +23,6 @@ class _Mission {
   });
 }
 
-// بيانات وهمية
 const List<_Mission> _allMissions = [
   _Mission(
     id: '#1235',
@@ -42,14 +41,6 @@ const List<_Mission> _allMissions = [
     status: 'نشط',
     droneId: 'DR-01',
     droneProgress: 65,
-  ),
-  _Mission(
-    id: '#1233',
-    childName: 'عمر خالد',
-    location: 'حي الروضة، شارع العليا',
-    time: 'منذ ساعتين',
-    description: 'يرتدي قميص أحمر',
-    status: 'مغلق',
   ),
 ];
 
@@ -75,13 +66,6 @@ class _MissionsListScreenState extends State<MissionsListScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _searchController.dispose();
-    super.dispose();
   }
 
   List<_Mission> _filtered(String type) {
@@ -156,49 +140,43 @@ class _MissionsListScreenState extends State<MissionsListScreen>
           ),
           const SizedBox(height: 12),
 
+          // 🔥 البحث بخط كحلي
           Container(
             height: 46,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(14),
             ),
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(
+                color: _navy,
+                fontWeight: FontWeight.w600,
+              ),
+              cursorColor: _navy,
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: const InputDecoration(
                 hintText: 'بحث عن بلاغ...',
-                hintStyle: TextStyle(color: Colors.white60),
-                prefixIcon:
-                    Icon(Icons.search, color: Colors.white60, size: 20),
+                hintStyle: TextStyle(color: Colors.grey),
+                prefixIcon: Icon(Icons.search, color: _navy),
                 border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
 
           const SizedBox(height: 14),
 
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.10),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                color: Colors.white.withOpacity(0.18),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-              dividerColor: Colors.transparent,
-              tabs: const [
-                Tab(text: 'نشط'),
-                Tab(text: 'جديد'),
-                Tab(text: 'الكل'),
-              ],
-            ),
+          TabBar(
+            controller: _tabController,
+            indicatorColor: Colors.white,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            tabs: const [
+              Tab(text: 'نشط'),
+              Tab(text: 'جديد'),
+              Tab(text: 'الكل'),
+            ],
           ),
         ],
       ),
@@ -231,7 +209,6 @@ class _MissionsListScreenState extends State<MissionsListScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // الاسم والحالة
               Row(
                 children: [
                   const CircleAvatar(
@@ -273,33 +250,11 @@ class _MissionsListScreenState extends State<MissionsListScreen>
                   ),
                 ],
               ),
-
-              const SizedBox(height: 10),
-
-              Text(mission.location,
-                  style:
-                      const TextStyle(fontSize: 12, color: Colors.grey)),
-              const SizedBox(height: 4),
-              Text(mission.time,
-                  style:
-                      const TextStyle(fontSize: 12, color: Colors.grey)),
-
-              const SizedBox(height: 10),
-
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: _bg,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(mission.description),
-              ),
-
               const SizedBox(height: 12),
               const Divider(),
               const SizedBox(height: 8),
 
-              // عرض التفاصيل ←
+              // 🔥 عرض التفاصيل مع سهم معكوس
               Align(
                 alignment: Alignment.centerLeft,
                 child: InkWell(
@@ -312,14 +267,14 @@ class _MissionsListScreenState extends State<MissionsListScreen>
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF3D5A6C),
+                          color: _navy,
                         ),
                       ),
                       SizedBox(width: 6),
                       Icon(
-                        Icons.arrow_back_ios_new,
+                        Icons.arrow_forward_ios,
                         size: 14,
-                        color: Color(0xFF3D5A6C),
+                        color: _navy,
                       ),
                     ],
                   ),
