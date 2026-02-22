@@ -196,38 +196,43 @@ class _HomeDashboardState extends State<HomeDashboard> {
             // ── البلاغات النشطة ──
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('البلاغات النشطة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pushNamed('/rescuer/missions'),
-                      child: const Text('عرض الكل', style: TextStyle(fontSize: 13, color: Color(0xFF3D5A6C))),
-                    ),
-                  ],
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('البلاغات النشطة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pushNamed('/rescuer/missions'),
+                            child: const Text('عرض الكل', style: TextStyle(fontSize: 13, color: Color(0xFF3D5A6C))),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _ActiveMissionCard(
+                        reportId: '#1234', childName: 'محمد أحمد', droneId: 'DR-01',
+                        battery: 85, location: 'حي النزهة، شارع الملك فهد',
+                        status: '🚨 عاجل', isUrgent: true,
+                        onTap: () => Navigator.of(context).pushNamed('/rescuer/mission-details'),
+                      ),
+                      const SizedBox(height: 10),
+                      _ActiveMissionCard(
+                        reportId: '#1235', childName: 'عبدالله محمد', droneId: 'DR-02',
+                        battery: 62, location: 'حي الربوة، شارع العليا',
+                        status: 'نشطة', isUrgent: false,
+                        onTap: () => Navigator.of(context).pushNamed('/rescuer/mission-details'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  _ActiveMissionCard(
-                    reportId: '#1234', childName: 'محمد أحمد', droneId: 'DR-01',
-                    battery: 85, location: 'حي النزهة، شارع الملك فهد',
-                    status: '🚨 عاجل', isUrgent: true,
-                    onTap: () => Navigator.of(context).pushNamed('/rescuer/mission-details'),
-                  ),
-                  const SizedBox(height: 10),
-                  _ActiveMissionCard(
-                    reportId: '#1235', childName: 'عبدالله محمد', droneId: 'DR-02',
-                    battery: 62, location: 'حي الربوة، شارع العليا',
-                    status: 'نشطة', isUrgent: false,
-                    onTap: () => Navigator.of(context).pushNamed('/rescuer/mission-details'),
-                  ),
-                ]),
               ),
             ),
 
@@ -296,12 +301,6 @@ class _HomeDashboardState extends State<HomeDashboard> {
                     _DroneCard(
                       droneId: 'DR-01', isOnline: true, battery: 85,
                       timeAgo: 'منذ 2 دقيقة', location: 'حي النزهة - بلاغ #1234',
-                      onTap: () => Navigator.of(context).pushNamed('/rescuer/mission-details'),
-                    ),
-                    const SizedBox(height: 10),
-                    _DroneCard(
-                      droneId: 'DR-02', isOnline: true, battery: 62,
-                      timeAgo: 'منذ 5 دقائق', location: 'حي الربوة - بلاغ #1235',
                       onTap: () => Navigator.of(context).pushNamed('/rescuer/mission-details'),
                     ),
                   ],
@@ -381,37 +380,43 @@ class _ActiveMissionCard extends StatelessWidget {
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // صف 1: رقم البلاغ يسار | الحالة يمين
+            // صف 1: رقم البلاغ + حالة (عمود) يسار | اسم + أيقونة يمين
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('بلاغ رقم $reportId', style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: _statusBg, borderRadius: BorderRadius.circular(20)),
-                  child: Text(
-                    status,
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: isUrgent ? Colors.white : Colors.black87),
-                  ),
+                // يسار: رقم البلاغ + الحالة تحته
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('بلاغ رقم $reportId', style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: _statusBg, borderRadius: BorderRadius.circular(20)),
+                      child: Text(status, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: isUrgent ? Colors.white : Colors.black87)),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // صف 2: موقع يسار | اسم + أيقونة يمين
-            Row(
-              children: [
-                const Icon(Icons.location_on, size: 13, color: Color(0xFFEF5350)),
-                const SizedBox(width: 3),
-                Expanded(child: Text(location, style: const TextStyle(fontSize: 12, color: Color(0xFF757575)), overflow: TextOverflow.ellipsis)),
-                const SizedBox(width: 10),
+                const Spacer(),
+                // يمين: اسم + أيقونة
                 Text(childName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 const SizedBox(width: 10),
                 const CircleAvatar(radius: 20, backgroundColor: Color(0xFFE0E0E0), child: Icon(Icons.person, color: Color(0xFF757575), size: 20)),
               ],
             ),
             const SizedBox(height: 12),
-            // صف 3: أيقونة + ID يسار | % + شريط بدون أيقونة خضراء يمين
+            // موقع
+            Row(
+              children: [
+                const Icon(Icons.location_on, size: 13, color: Color(0xFFEF5350)),
+                const SizedBox(width: 3),
+                Expanded(child: Text(location, style: const TextStyle(fontSize: 12, color: Color(0xFF757575)), overflow: TextOverflow.ellipsis)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // الدرون: أيقونة + ID | % بدون شريط طويل
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(color: const Color(0xFFF4EFEB), borderRadius: BorderRadius.circular(10)),
@@ -423,14 +428,7 @@ class _ActiveMissionCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Container(width: 1, height: 14, color: const Color(0xFFD0D0D0)),
                   const SizedBox(width: 8),
-                  Text('$battery%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _batteryColor)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(value: battery / 100, backgroundColor: const Color(0xFFE0E0E0), color: _batteryColor, minHeight: 6),
-                    ),
-                  ),
+                  Text('البطارية: $battery%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _batteryColor)),
                 ],
               ),
             ),
