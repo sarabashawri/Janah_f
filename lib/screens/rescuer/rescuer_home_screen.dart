@@ -66,6 +66,27 @@ class _HomeDashboardState extends State<HomeDashboard> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // أيقونة + اسم يمين
+                    Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 28,
+                          backgroundColor: Colors.white24,
+                          child: Icon(Icons.person, color: Colors.white, size: 32),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text('مرحباً بك', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                            SizedBox(height: 2),
+                            Text('خالد الشهري', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                            SizedBox(height: 4),
+                            Text('فريق الإنقاذ - جناح', style: TextStyle(fontSize: 12, color: Colors.white60)),
+                          ],
+                        ),
+                      ],
+                    ),
                     // إشعارات يسار
                     Stack(
                       children: [
@@ -84,66 +105,44 @@ class _HomeDashboardState extends State<HomeDashboard> {
                         ),
                       ],
                     ),
-                    // اسم + أيقونة يمين
-                    Row(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: const [
-                            Text('مرحباً بك', style: TextStyle(fontSize: 12, color: Colors.white70)),
-                            SizedBox(height: 2),
-                            Text('خالد الشهري', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
-                            SizedBox(height: 4),
-                            Text('فريق الإنقاذ - جناح', style: TextStyle(fontSize: 12, color: Colors.white60)),
-                          ],
-                        ),
-                        const SizedBox(width: 12),
-                        const CircleAvatar(
-                          radius: 28,
-                          backgroundColor: Colors.white24,
-                          child: Icon(Icons.person, color: Colors.white, size: 32),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
             ),
 
-            // ── تنبيه مهمة عاجلة ──
+            // ── كارد بلّغ عن طفل مفقود ──
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEF5350),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [BoxShadow(color: const Color(0xFFEF5350).withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
                   ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // سهم يسار
-                      const Icon(Icons.arrow_forward, color: Colors.white, size: 22),
-                      const Spacer(),
-                      // نص يمين
-                      const Expanded(
-                        flex: 8,
+                      Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text('🚨 مهمة عاجلة نشطة', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
-                            SizedBox(height: 2),
-                            Text('بلاغ #1234 - يحتاج تدخل فوري', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text('بلّغ عن الطفل المفقود', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                            SizedBox(height: 4),
+                            Text('قم بتقديم بلاغ جديد للبحث عن طفل مفقود', style: TextStyle(fontSize: 12, color: Color(0xFF757575))),
                           ],
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // أيقونة تحذير يمين
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
-                        child: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 22),
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pushNamed('/rescuer/mission-details'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3D5A6C),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('بلّغ الآن', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
                       ),
                     ],
                   ),
@@ -155,35 +154,41 @@ class _HomeDashboardState extends State<HomeDashboard> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: const [
-                      Icon(Icons.bar_chart_rounded, color: Color(0xFF3D5A6C), size: 18),
-                      SizedBox(width: 6),
-                      Text('إحصائيات اليوم', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                    ]),
-                    const SizedBox(height: 12),
-                    // صف 1: 3 مربعات
-                    Row(
-                      children: [
-                        Expanded(child: _StatCard(title: 'قيد المتابعة', count: '1', icon: Icons.pending_actions, color: const Color(0xFF2196F3))),
-                        const SizedBox(width: 10),
-                        Expanded(child: _StatCard(title: 'بلاغات جديدة', count: '1', icon: Icons.flag_rounded, color: const Color(0xFFEF5350))),
-                        const SizedBox(width: 10),
-                        Expanded(child: _StatCard(title: 'مراقبة جارية', count: '1', icon: Icons.remove_red_eye, color: const Color(0xFFFFEB3B))),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    // صف 2: مربعان
-                    Row(
-                      children: [
-                        Expanded(child: _StatCard(title: 'متوسط الوقت', count: '12 د', icon: Icons.timer_outlined, color: const Color(0xFF9C27B0))),
-                        const SizedBox(width: 10),
-                        Expanded(child: _StatCard(title: 'معدل النجاح', count: '94%', icon: Icons.trending_up, color: const Color(0xFF00D995))),
-                      ],
-                    ),
-                  ],
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: const [
+                        Icon(Icons.bar_chart_rounded, color: Color(0xFF3D5A6C), size: 18),
+                        SizedBox(width: 6),
+                        Text('إحصائيات اليوم', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                      ]),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(child: _StatCard(title: 'مراقبة جارية', count: '1', icon: Icons.remove_red_eye, color: const Color(0xFFFFEB3B))),
+                          const SizedBox(width: 10),
+                          Expanded(child: _StatCard(title: 'بلاغات جديدة', count: '1', icon: Icons.flag_rounded, color: const Color(0xFFEF5350))),
+                          const SizedBox(width: 10),
+                          Expanded(child: _StatCard(title: 'قيد المتابعة', count: '1', icon: Icons.pending_actions, color: const Color(0xFF2196F3))),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(child: _StatCard(title: 'معدل النجاح', count: '94%', icon: Icons.trending_up, color: const Color(0xFF00D995))),
+                          const SizedBox(width: 10),
+                          Expanded(child: _StatCard(title: 'متوسط الوقت', count: '12 د', icon: Icons.timer_outlined, color: const Color(0xFF9C27B0))),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
