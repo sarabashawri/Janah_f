@@ -382,10 +382,11 @@ class _ActiveMissionCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // صف 1: الحالة يسار | رقم البلاغ يمين
+            // صف 1: رقم البلاغ يسار | الحالة يمين
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Text('بلاغ رقم $reportId', style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(color: _statusBg, borderRadius: BorderRadius.circular(20)),
@@ -394,22 +395,15 @@ class _ActiveMissionCard extends StatelessWidget {
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: isUrgent ? Colors.white : Colors.black87),
                   ),
                 ),
-                Text('بلاغ رقم $reportId', style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
               ],
             ),
             const SizedBox(height: 12),
-            // صف 2: موقع يسار | أيقونة + اسم يمين
+            // صف 2: موقع يسار | اسم + أيقونة يمين
             Row(
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      const Icon(Icons.location_on, size: 13, color: Color(0xFFEF5350)),
-                      const SizedBox(width: 3),
-                      Expanded(child: Text(location, style: const TextStyle(fontSize: 12, color: Color(0xFF757575)), overflow: TextOverflow.ellipsis)),
-                    ],
-                  ),
-                ),
+                const Icon(Icons.location_on, size: 13, color: Color(0xFFEF5350)),
+                const SizedBox(width: 3),
+                Expanded(child: Text(location, style: const TextStyle(fontSize: 12, color: Color(0xFF757575)), overflow: TextOverflow.ellipsis)),
                 const SizedBox(width: 10),
                 Text(childName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 const SizedBox(width: 10),
@@ -417,39 +411,39 @@ class _ActiveMissionCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // صف 3: درون بدون أيقونة بطارية خضراء — شريط + نص فقط
+            // صف 3: أيقونة + ID يسار | % + شريط بدون أيقونة خضراء يمين
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(color: const Color(0xFFF4EFEB), borderRadius: BorderRadius.circular(10)),
               child: Row(
                 children: [
+                  const Icon(Icons.flight, color: Color(0xFF3D5A6C), size: 16),
+                  const SizedBox(width: 6),
+                  Text(droneId, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3D5A6C))),
+                  const SizedBox(width: 8),
+                  Container(width: 1, height: 14, color: const Color(0xFFD0D0D0)),
+                  const SizedBox(width: 8),
+                  Text('$battery%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _batteryColor)),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(value: battery / 100, backgroundColor: const Color(0xFFE0E0E0), color: _batteryColor, minHeight: 6),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Text('$battery%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _batteryColor)),
-                  const SizedBox(width: 8),
-                  Container(width: 1, height: 14, color: const Color(0xFFD0D0D0)),
-                  const SizedBox(width: 8),
-                  Text(droneId, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3D5A6C))),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.flight, color: Color(0xFF3D5A6C), size: 16),
                 ],
               ),
             ),
             const SizedBox(height: 10),
             const Divider(height: 1),
             const SizedBox(height: 10),
-            // عرض التفاصيل يسار ←
+            // عرض التفاصيل يمين →
             const Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Icon(Icons.arrow_back, size: 15, color: Color(0xFF3D5A6C)),
-                SizedBox(width: 4),
                 Text('عرض التفاصيل', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3D5A6C))),
+                SizedBox(width: 4),
+                Icon(Icons.arrow_forward, size: 15, color: Color(0xFF3D5A6C)),
               ],
             ),
           ],
