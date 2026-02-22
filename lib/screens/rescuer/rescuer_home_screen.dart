@@ -238,65 +238,45 @@ class _HomeDashboardState extends State<HomeDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text('الخريطة العامة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                        Text('2 مواقع نشطة', style: TextStyle(fontSize: 13, color: Color(0xFF3D5A6C))),
-                      ],
+                    const Text('الخريطة العامة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 12),
+                    // الخريطة
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: SizedBox(
+                        height: 180,
+                        width: double.infinity,
+                        child: Stack(
+                          children: [
+                            CustomPaint(size: const Size(double.infinity, 180), painter: _MapPlaceholderPainter()),
+                            const Positioned(top: 60, left: 100, child: _MapDot(color: Color(0xFFEF5350))),
+                            const Positioned(top: 100, right: 120, child: _MapDot(color: Color(0xFFFFEB3B))),
+                            Positioned(
+                              top: 10, left: 10,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8)]),
+                                child: const Text('2 مواقع نشطة', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF3D5A6C))),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD0E8F0),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFB0D4E0)),
-                      ),
-                      child: Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: CustomPaint(size: const Size(double.infinity, 200), painter: _MapPlaceholderPainter()),
-                          ),
-                          // نقطة حمراء
-                          const Positioned(top: 60, left: 100, child: _MapDot(color: Color(0xFFEF5350))),
-                          // نقطة خضراء
-                          const Positioned(top: 100, right: 120, child: _MapDot(color: Color(0xFF00D995))),
-                          // badge آخر تحديث
-                          Positioned(
-                            top: 10, right: 10,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.9), borderRadius: BorderRadius.circular(20)),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.refresh, size: 12, color: Color(0xFF3D5A6C)),
-                                  SizedBox(width: 4),
-                                  Text('آخر تحديث: منذ 2 دقيقة', style: TextStyle(fontSize: 10, color: Color(0xFF3D5A6C), fontWeight: FontWeight.w600)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          // زر عرض الخريطة في الوسط أسفل
-                          Positioned(
-                            bottom: 14, left: 0, right: 0,
-                            child: Center(
-                              child: ElevatedButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(Icons.map, size: 16, color: Colors.white),
-                                label: const Text('عرض الخريطة الكاملة', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF3D5A6C),
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                  elevation: 4,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                    // زر عرض الخريطة تحت الخريطة
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {},
+                        icon: const Icon(Icons.location_on, size: 18, color: Colors.white),
+                        label: const Text('عرض الخريطة الكاملة', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3D5A6C),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        ),
                       ),
                     ),
                   ],
@@ -402,11 +382,10 @@ class _ActiveMissionCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // صف 1: رقم البلاغ يسار | الحالة يمين
+            // صف 1: الحالة يسار | رقم البلاغ يمين
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('بلاغ رقم $reportId', style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(color: _statusBg, borderRadius: BorderRadius.circular(20)),
@@ -415,45 +394,35 @@ class _ActiveMissionCard extends StatelessWidget {
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: isUrgent ? Colors.white : Colors.black87),
                   ),
                 ),
+                Text('بلاغ رقم $reportId', style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
               ],
             ),
             const SizedBox(height: 12),
-            // صف 2: أيقونة + اسم + موقع يمين
+            // صف 2: موقع يسار | أيقونة + اسم يمين
             Row(
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on, size: 13, color: Color(0xFFEF5350)),
-                          const SizedBox(width: 3),
-                          Expanded(child: Text(location, style: const TextStyle(fontSize: 12, color: Color(0xFF757575)), overflow: TextOverflow.ellipsis)),
-                        ],
-                      ),
+                      const Icon(Icons.location_on, size: 13, color: Color(0xFFEF5350)),
+                      const SizedBox(width: 3),
+                      Expanded(child: Text(location, style: const TextStyle(fontSize: 12, color: Color(0xFF757575)), overflow: TextOverflow.ellipsis)),
                     ],
                   ),
                 ),
                 const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(childName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                  ],
-                ),
+                Text(childName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 const SizedBox(width: 10),
                 const CircleAvatar(radius: 20, backgroundColor: Color(0xFFE0E0E0), child: Icon(Icons.person, color: Color(0xFF757575), size: 20)),
               ],
             ),
             const SizedBox(height: 12),
-            // صف 3: شريط البطارية
+            // صف 3: درون بدون أيقونة بطارية خضراء — شريط + نص فقط
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(color: const Color(0xFFF4EFEB), borderRadius: BorderRadius.circular(10)),
               child: Row(
                 children: [
-                  // شريط البطارية يسار
                   Expanded(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(4),
@@ -461,31 +430,24 @@ class _ActiveMissionCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  // بطارية + ID + أيقونة يمين
-                  Row(
-                    children: [
-                      Text('$battery%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _batteryColor)),
-                      const SizedBox(width: 4),
-                      Icon(Icons.battery_charging_full, color: _batteryColor, size: 15),
-                      const SizedBox(width: 8),
-                      Container(width: 1, height: 14, color: const Color(0xFFD0D0D0)),
-                      const SizedBox(width: 8),
-                      Text(droneId, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3D5A6C))),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.flight, color: Color(0xFF3D5A6C), size: 16),
-                    ],
-                  ),
+                  Text('$battery%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _batteryColor)),
+                  const SizedBox(width: 8),
+                  Container(width: 1, height: 14, color: const Color(0xFFD0D0D0)),
+                  const SizedBox(width: 8),
+                  Text(droneId, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3D5A6C))),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.flight, color: Color(0xFF3D5A6C), size: 16),
                 ],
               ),
             ),
             const SizedBox(height: 10),
             const Divider(height: 1),
             const SizedBox(height: 10),
-            // عرض التفاصيل → في الوسط
+            // عرض التفاصيل يسار ←
             const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Icon(Icons.arrow_forward, size: 15, color: Color(0xFF3D5A6C)),
+                Icon(Icons.arrow_back, size: 15, color: Color(0xFF3D5A6C)),
                 SizedBox(width: 4),
                 Text('عرض التفاصيل', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3D5A6C))),
               ],
@@ -515,97 +477,123 @@ class _DroneCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
-      child: Row(
+      child: Column(
         children: [
-          // زر عرض المهمة يسار
-          ElevatedButton(
-            onPressed: onTap,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3D5A6C),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: const Text('عرض\nالمهمة', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white), textAlign: TextAlign.center),
-          ),
-          const SizedBox(width: 12),
-          // البطارية + موقع في الوسط
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.battery_charging_full, color: _batteryColor, size: 14),
-                    const SizedBox(width: 4),
-                    Text('$battery%', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _batteryColor)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(value: battery / 100, backgroundColor: const Color(0xFFE0E0E0), color: _batteryColor, minHeight: 6),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, size: 12, color: Color(0xFF757575)),
-                    const SizedBox(width: 3),
-                    Expanded(child: Text(location, style: const TextStyle(fontSize: 12, color: Color(0xFF757575)), overflow: TextOverflow.ellipsis)),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    const Icon(Icons.access_time, size: 11, color: Color(0xFF9E9E9E)),
-                    const SizedBox(width: 3),
-                    Text('آخر تحديث: $timeAgo', style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          // أيقونة الطائرة + ID + متصل يمين
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          // صف 1: "في مهمة" يسار | ID + أيقونة يمين
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Stack(
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(color: const Color(0xFF3D5A6C), borderRadius: BorderRadius.circular(20)),
+                child: const Text('في مهمة', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+              ),
+              Row(
                 children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(droneId, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                      const Text('88 ساعة طيران', style: TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
+                    ],
+                  ),
+                  const SizedBox(width: 10),
                   Container(
                     padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: const Color(0xFF3D5A6C).withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.flight, color: Color(0xFF3D5A6C), size: 26),
-                  ),
-                  Positioned(
-                    bottom: 2, left: 2,
-                    child: Container(
-                      width: 11, height: 11,
-                      decoration: BoxDecoration(
-                        color: isOnline ? const Color(0xFF00D995) : const Color(0xFFEF5350),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                    ),
+                    decoration: BoxDecoration(color: const Color(0xFF3D5A6C), borderRadius: BorderRadius.circular(12)),
+                    child: const Icon(Icons.flight, color: Colors.white, size: 24),
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
-              Text(droneId, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF3D5A6C))),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: isOnline ? const Color(0xFF00D995).withOpacity(0.12) : const Color(0xFFEF5350).withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(20),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // صف 2: البطارية | الاتصال — مربعين
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: const Color(0xFFF4EFEB), borderRadius: BorderRadius.circular(12)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: const [
+                          Icon(Icons.battery_charging_full, size: 14, color: Color(0xFF757575)),
+                          SizedBox(width: 4),
+                          Text('البطارية', style: TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text('$battery%', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: _batteryColor)),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(value: battery / 100, backgroundColor: const Color(0xFFE0E0E0), color: _batteryColor, minHeight: 6),
+                      ),
+                    ],
+                  ),
                 ),
-                child: Text(
-                  isOnline ? 'متصل' : 'غير متصل',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isOnline ? const Color(0xFF00D995) : const Color(0xFFEF5350)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: const Color(0xFFF4EFEB), borderRadius: BorderRadius.circular(12)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: const [
+                          Icon(Icons.signal_cellular_alt, size: 14, color: Color(0xFF757575)),
+                          SizedBox(width: 4),
+                          Text('الاتصال', style: TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      const Text('جيد', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF3D5A6C))),
+                    ],
+                  ),
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          // الموقع + آخر مهمة + نشط الآن
+          Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+            const Icon(Icons.location_on, size: 14, color: Color(0xFFEF5350)),
+            const SizedBox(width: 4),
+            Text(location.split(' - ').first, style: const TextStyle(fontSize: 13, color: Color(0xFF757575))),
+          ]),
+          const SizedBox(height: 4),
+          Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+            const Icon(Icons.access_time, size: 13, color: Color(0xFF9E9E9E)),
+            const SizedBox(width: 4),
+            Text('آخر مهمة: ${location.contains('#') ? location.split('- ').last : '#1234'}', style: const TextStyle(fontSize: 13, color: Color(0xFF757575))),
+          ]),
+          const SizedBox(height: 2),
+          const Align(
+            alignment: Alignment.centerRight,
+            child: Text('نشط الآن', style: TextStyle(fontSize: 13, color: Color(0xFF00D995), fontWeight: FontWeight.w600)),
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          // زر عرض المهمة الحالية
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3D5A6C),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('عرض المهمة الحالية', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+            ),
           ),
         ],
       ),
