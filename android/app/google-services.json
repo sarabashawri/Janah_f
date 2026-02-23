@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "919228258325",
+    "project_id": "janah-app",
+    "storage_bucket": "janah-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:919228258325:android:459e8d9b0e02886e49961c",
+        "android_client_info": {
+          "package_name": "com.janah.janah_complete"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2n2qKA7JqBhZj8rNt8d_VrJ8Kn47XCm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
