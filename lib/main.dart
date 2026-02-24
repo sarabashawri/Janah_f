@@ -4,6 +4,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/auth/splash_screen.dart';
 import 'screens/auth/user_type_selection_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 // Guardian imports
 import 'screens/guardian/guardian_login_screen.dart';
