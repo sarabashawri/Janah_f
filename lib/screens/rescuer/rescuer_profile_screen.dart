@@ -20,8 +20,6 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-
-                // ── HEADER ──
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -37,13 +35,10 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                     ],
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: [
-
-                      // ── بطاقة المستخدم ──
                       Container(
                         padding: const EdgeInsets.all(18),
                         decoration: BoxDecoration(
@@ -81,7 +76,6 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                             const SizedBox(height: 16),
                             const Divider(height: 1),
                             const SizedBox(height: 14),
-                            // مفتاح المتاحية
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -115,10 +109,7 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
-                      // ── الإحصائيات الشخصية ──
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -155,10 +146,7 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
-                      // ── الأداء ──
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -169,7 +157,6 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // مميز
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: const [
@@ -180,15 +167,9 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                             const SizedBox(height: 6),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(6),
-                              child: LinearProgressIndicator(
-                                value: 0.88,
-                                backgroundColor: const Color(0xFFE0E0E0),
-                                color: const Color(0xFF00D995),
-                                minHeight: 8,
-                              ),
+                              child: const LinearProgressIndicator(value: 0.88, backgroundColor: Color(0xFFE0E0E0), color: Color(0xFF00D995), minHeight: 8),
                             ),
                             const SizedBox(height: 16),
-                            // ساعات العمل
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: const [
@@ -199,20 +180,12 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                             const SizedBox(height: 6),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(6),
-                              child: LinearProgressIndicator(
-                                value: 0.71,
-                                backgroundColor: const Color(0xFFE0E0E0),
-                                color: const Color(0xFFFF9800),
-                                minHeight: 8,
-                              ),
+                              child: const LinearProgressIndicator(value: 0.71, backgroundColor: Color(0xFFE0E0E0), color: Color(0xFFFF9800), minHeight: 8),
                             ),
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
-                      // ── الإعدادات والأمان ──
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -232,10 +205,7 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
-                      // ── زر تسجيل الخروج ──
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -249,11 +219,8 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 12),
-
                       const Text('نسخة التطبيق 1.0.0 | غرفة العمليات', style: TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
-
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -291,8 +258,6 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
   }
 }
 
-// ─── WIDGETS ───
-
 class _StatBox extends StatelessWidget {
   const _StatBox({required this.value, required this.label, required this.color, required this.icon});
   final String value, label;
@@ -304,10 +269,7 @@ class _StatBox extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(14),
-        ),
+        decoration: BoxDecoration(color: color.withOpacity(0.08), borderRadius: BorderRadius.circular(14)),
         child: Column(
           children: [
             Icon(icon, color: color, size: 26),
