@@ -37,7 +37,7 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('خطأ: تحقق من البريد وكلمة المرور')),
+            const SnackBar(content: Text('خطأ: تحقق من البريد وكلمة المرور')),
           );
         }
       } finally {
@@ -141,6 +141,23 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                                 ? const CircularProgressIndicator(color: Colors.white)
                                 : const Text('دخول', style: TextStyle(fontSize: 18, color: Colors.white)),
                           ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('ليس لديك حساب؟'),
+                            TextButton(
+                              onPressed: () => Navigator.pushNamed(context, '/guardian/register'),
+                              child: const Text(
+                                'سجل الآن',
+                                style: TextStyle(
+                                  color: Color(0xFF3D5A6C),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
