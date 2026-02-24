@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/auth/splash_screen.dart';
 import 'screens/auth/user_type_selection_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 
 // Guardian imports
 import 'screens/guardian/guardian_login_screen.dart';
@@ -26,8 +26,11 @@ import 'screens/rescuer/rescuer_home_screen.dart';
 import 'screens/rescuer/missions_list_screen.dart';
 import 'screens/rescuer/mission_details_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -67,8 +70,6 @@ class JanahApp extends StatelessWidget {
       routes: {
         '/': (context) => const SplashScreen(),
         '/user-type': (context) => const UserTypeSelectionScreen(),
-        
-        // Guardian routes
         '/guardian/login': (context) => const GuardianLoginScreen(),
         '/guardian/register': (context) => const GuardianRegisterScreen(),
         '/guardian/forgot-password': (context) => const GuardianForgotPasswordScreen(),
@@ -80,8 +81,6 @@ class JanahApp extends StatelessWidget {
         '/guardian/notifications': (context) => const NotificationsScreen(),
         '/guardian/support': (context) => const SupportScreen(),
         '/guardian/about': (context) => const AboutScreen(),
-        
-        // Rescuer routes
         '/rescuer/login': (context) => const RescuerLoginScreen(),
         '/rescuer/home': (context) => const RescuerHomeScreen(),
         '/rescuer/missions': (context) => const MissionsListScreen(),
