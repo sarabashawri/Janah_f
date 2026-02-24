@@ -16,29 +16,41 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF4EFEB),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-                  color: const Color(0xFFF4EFEB),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('الملف الشخصي', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.settings_outlined, color: Color(0xFF3D5A6C)),
-                      ),
-                    ],
+        body: Column(
+          children: [
+            // ── HEADER كحلي ──
+            Container(
+              width: double.infinity,
+              color: const Color(0xFF3D5A6C),
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 12,
+                bottom: 16,
+                right: 20,
+                left: 20,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('الملف الشخصي',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.settings_outlined, color: Colors.white),
                   ),
-                ),
-                Padding(
+                ],
+              ),
+            ),
+
+            // ── BODY ──
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: [
+                      const SizedBox(height: 16),
+
+                      // ── بطاقة المستخدم ──
                       Container(
                         padding: const EdgeInsets.all(18),
                         decoration: BoxDecoration(
@@ -109,7 +121,10 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                           ],
                         ),
                       ),
+
                       const SizedBox(height: 16),
+
+                      // ── الإحصائيات الشخصية ──
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -146,7 +161,10 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                           ],
                         ),
                       ),
+
                       const SizedBox(height: 16),
+
+                      // ── أداء الشهر الحالي ──
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -157,24 +175,42 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            const Text('أداء الشهر الحالي', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 14),
+                            // المهام المكتملة
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: const [
-                                Text('مميز', style: TextStyle(fontSize: 13, color: Color(0xFF9E9E9E))),
+                                Text('12/15', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF2D2D2D))),
+                                Text('المهام المكتملة', style: TextStyle(fontSize: 13, color: Color(0xFF9E9E9E))),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: const LinearProgressIndicator(value: 0.80, backgroundColor: Color(0xFFE0E0E0), color: Color(0xFF00D995), minHeight: 8),
+                            ),
+                            const SizedBox(height: 14),
+                            // وقت الاستجابة
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Text('ممتاز', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF2D2D2D))),
                                 Text('وقت الاستجابة', style: TextStyle(fontSize: 13, color: Color(0xFF9E9E9E))),
                               ],
                             ),
                             const SizedBox(height: 6),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(6),
-                              child: const LinearProgressIndicator(value: 0.88, backgroundColor: Color(0xFFE0E0E0), color: Color(0xFF00D995), minHeight: 8),
+                              child: const LinearProgressIndicator(value: 0.88, backgroundColor: Color(0xFFE0E0E0), color: Color(0xFF2196F3), minHeight: 8),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 14),
+                            // ساعات العمل
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: const [
-                                Text('ساعات العمل', style: TextStyle(fontSize: 13, color: Color(0xFF9E9E9E))),
                                 Text('142 ساعة', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF2D2D2D))),
+                                Text('ساعات العمل', style: TextStyle(fontSize: 13, color: Color(0xFF9E9E9E))),
                               ],
                             ),
                             const SizedBox(height: 6),
@@ -185,7 +221,10 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                           ],
                         ),
                       ),
+
                       const SizedBox(height: 16),
+
+                      // ── الإعدادات والأمان ──
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -199,13 +238,16 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                               padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                               child: Text('الإعدادات والأمان', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                             ),
-                            _SettingItem(icon: Icons.lock_outline, title: 'تغيير كلمة المرور', onTap: () {}),
-                            _SettingItem(icon: Icons.notifications_outlined, title: 'إعدادات التنبيهات', onTap: () {}),
-                            _SettingItem(icon: Icons.person_outline, title: 'تعديل المعلومات الشخصية', onTap: () {}, isLast: true),
+                            _SettingItem(icon: Icons.lock_outline, title: 'تغيير كلمة المرور', onTap: () => Navigator.pushNamed(context, '/rescuer/change-password')),
+                            _SettingItem(icon: Icons.notifications_outlined, title: 'إعدادات التنبيهات', onTap: () => Navigator.pushNamed(context, '/rescuer/notifications-settings')),
+                            _SettingItem(icon: Icons.person_outline, title: 'تعديل المعلومات الشخصية', onTap: () => Navigator.pushNamed(context, '/rescuer/edit-profile'), isLast: true),
                           ],
                         ),
                       ),
+
                       const SizedBox(height: 16),
+
+                      // ── زر تسجيل الخروج ──
                       SizedBox(
                         width: double.infinity,
                         height: 52,
@@ -219,15 +261,16 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 12),
                       const Text('نسخة التطبيق 1.0.0 | غرفة العمليات', style: TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
                       const SizedBox(height: 24),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -305,7 +348,7 @@ class _SettingItem extends StatelessWidget {
             Icon(icon, color: const Color(0xFF3D5A6C), size: 20),
             const SizedBox(width: 12),
             Expanded(child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))),
-            const Icon(Icons.arrow_back, size: 18, color: Color(0xFF9E9E9E)),
+            const Icon(Icons.arrow_forward_ios, size: 16, color: Color(0xFF9E9E9E)),
           ],
         ),
       ),
