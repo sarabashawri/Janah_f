@@ -242,13 +242,33 @@ class MissionDetailsScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 10),
-                          _PrimaryButton(
-                            text: 'عرض الخريطة بملء الشاشة',
-                            icon: Icons.location_on,
-                            background: _navy,
-                            height: 46,
-                            radius: 14,
-                            onTap: () {},
+
+                          // ✅ (تعديل 2) زر الخريطة صار مريح
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton.icon(
+                              onPressed: () {},
+                              icon: const Icon(Icons.location_on, color: Colors.white, size: 18),
+                              label: const Text(
+                                'عرض الخريطة بملء الشاشة',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.2,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _navy,
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                elevation: 0,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -411,7 +431,7 @@ class _Header extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Row(
             children: [
-              // سهم يمين (RTL)
+              // ✅ (تعديل 1) السهم صار forward في RTL
               IconButton(
                 onPressed: onBack,
                 icon: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 20),
@@ -603,7 +623,7 @@ class _PrimaryButton extends StatelessWidget {
     required this.icon,
     required this.background,
     required this.onTap,
-    this.height = 52,
+    this.height = 54,
     this.radius = 18,
   });
 
@@ -622,9 +642,12 @@ class _PrimaryButton extends StatelessWidget {
       child: ElevatedButton.icon(
         onPressed: onTap,
         icon: Icon(icon, color: Colors.white, size: 20),
-        label: Text(
-          text,
-          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800),
+        label: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Text(
+            text,
+            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800),
+          ),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: background,
@@ -651,12 +674,7 @@ class _MapPreview extends StatelessWidget {
         color: const Color(0xFFCFDAE0),
         child: Stack(
           children: [
-            // Placeholder قريب من شكل فيقما (مكان الخريطة)
-            Center(
-              child: Icon(Icons.map_outlined, size: 60, color: _navy.withOpacity(0.25)),
-            ),
-
-            // شارة DR-01 أعلى يسار
+            Center(child: Icon(Icons.map_outlined, size: 60, color: _navy.withOpacity(0.25))),
             Positioned(
               top: 10,
               left: 10,
@@ -669,8 +687,6 @@ class _MapPreview extends StatelessWidget {
                 ),
               ),
             ),
-
-            // نسبة ممسوحة أسفل يمين
             Positioned(
               bottom: 10,
               right: 10,
@@ -713,22 +729,54 @@ class _SuspiciousPointCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // عنوان يمين + (يسار: بادج فوق + عرض والتحقق تحتها)
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // العنوان يمين
-              Text(
-                'نقطة اشتباه #${point.number}',
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
-              ),
-              const Spacer(),
-              // البادج يسار
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: badge, borderRadius: BorderRadius.circular(18)),
+              Expanded(
                 child: Text(
-                  point.status,
-                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
+                  'نقطة اشتباه #${point.number}',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
                 ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(color: badge, borderRadius: BorderRadius.circular(18)),
+                    child: Text(
+                      point.status,
+                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // ✅ (تعديل 3) عرض والتحقق تحت البادج وعلى اليسار
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: InkWell(
+                      onTap: onTap,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            'عرض والتحقق',
+                            style: TextStyle(
+                              color: Color(0xFF3D5A6C),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFF3D5A6C)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -746,26 +794,6 @@ class _SuspiciousPointCard extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 10),
-          InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Text(
-                  'عرض والتحقق',
-                  style: TextStyle(
-                    color: Color(0xFF3D5A6C),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
-                  ),
-                ),
-                SizedBox(width: 6),
-                Icon(Icons.arrow_back_ios, size: 14, color: Color(0xFF3D5A6C)),
-              ],
-            ),
           ),
         ],
       ),
@@ -801,7 +829,10 @@ class _CameraThumb extends StatelessWidget {
                   children: [
                     const Icon(Icons.camera_alt, size: 12, color: Colors.white),
                     const SizedBox(width: 6),
-                    Text(time, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                    Text(
+                      time,
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
+                    ),
                   ],
                 ),
               ),
