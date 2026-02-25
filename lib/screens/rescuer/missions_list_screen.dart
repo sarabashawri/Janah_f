@@ -1,57 +1,5 @@
 import 'package:flutter/material.dart';
-
-// موديل البلاغ
-class _Mission {
-  final String id;
-  final String childName;
-  final String location;
-  final String time;
-  final String description;
-  final String status; // 'نشط' | 'مغلق'
-  final String? droneId;
-  final int? droneProgress;
-
-  const _Mission({
-    required this.id,
-    required this.childName,
-    required this.location,
-    required this.time,
-    required this.description,
-    required this.status,
-    this.droneId,
-    this.droneProgress,
-  });
-}
-
-// بيانات وهمية
-const List<_Mission> _allMissions = [
-  _Mission(
-    id: '#1235',
-    childName: 'سارة أحمد',
-    location: 'حي النزهة، شارع الملك فهد',
-    time: 'منذ 15 دقيقة',
-    description: 'طفلة ترتدي فستان وردي',
-    status: 'مغلق',
-  ),
-  _Mission(
-    id: '#1234',
-    childName: 'محمد أحمد',
-    location: 'حي الملز، قرب الحديقة',
-    time: 'منذ 45 دقيقة',
-    description: 'يرتدي قميص أزرق',
-    status: 'نشط',
-    droneId: 'DR-01',
-    droneProgress: 65,
-  ),
-  _Mission(
-    id: '#1233',
-    childName: 'عمر خالد',
-    location: 'حي الروضة، شارع العليا',
-    time: 'منذ ساعتين',
-    description: 'يرتدي قميص أحمر',
-    status: 'مغلق',
-  ),
-];
+import 'mission_details_screen.dart';
 
 class MissionsListScreen extends StatefulWidget {
   const MissionsListScreen({super.key});
@@ -67,9 +15,10 @@ class _MissionsListScreenState extends State<MissionsListScreen>
   String _searchQuery = '';
 
   static const Color _navy = Color(0xFF3D5A6C);
-  static const Color _bg = Color(0xFFF4EFEB);
-  static const Color _activeYellow = Color(0xFFFFEB3B);
-  static const Color _danger = Color(0xFFEF5350);
+  static const Color _bg   = Color(0xFFF4EFEB);
+
+  // بيانات البلاغات مأخوذة من missionsMap
+  List<MissionData> get _allMissions => missionsMap.values.toList();
 
   @override
   void initState() {
@@ -84,23 +33,21 @@ class _MissionsListScreenState extends State<MissionsListScreen>
     super.dispose();
   }
 
-  List<_Mission> _filtered(String type) {
-    List<_Mission> list;
+  List<MissionData> _filtered(String type) {
+    List<MissionData> list;
     if (type == 'نشط') {
-      list = _allMissions.where((m) => m.status == 'نشط').toList();
+      list = _allMissions.where((m) => m.scannedArea < 100).toList();
     } else if (type == 'مغلق') {
-      list = _allMissions.where((m) => m.status == 'مغلق').toList();
+      list = _allMissions.where((m) => m.scannedArea >= 100).toList();
     } else {
       list = _allMissions;
     }
-
     if (_searchQuery.isNotEmpty) {
-      list = list
-          .where((m) =>
-              m.childName.contains(_searchQuery) ||
-              m.id.contains(_searchQuery) ||
-              m.location.contains(_searchQuery))
-          .toList();
+      list = list.where((m) =>
+        m.childName.contains(_searchQuery) ||
+        m.reportId.contains(_searchQuery) ||
+        m.lastLocation.contains(_searchQuery)
+      ).toList();
     }
     return list;
   }
@@ -143,33 +90,18 @@ class _MissionsListScreenState extends State<MissionsListScreen>
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'قائمة البلاغات',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
+              Text('قائمة البلاغات',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
               Icon(Icons.filter_list, color: Colors.white),
             ],
           ),
           const SizedBox(height: 12),
-
-          // ✅ البحث (يظهر الخط + الكتابة كحلي/أسود)
           Container(
             height: 46,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-            ),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(
-                color: _navy,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(color: _navy, fontSize: 14, fontWeight: FontWeight.w600),
               cursorColor: _navy,
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: const InputDecoration(
@@ -181,10 +113,7 @@ class _MissionsListScreenState extends State<MissionsListScreen>
               ),
             ),
           ),
-
           const SizedBox(height: 14),
-
-          // ✅ السويتش (نفس القديم كـ Tabs لكن داخل الهيدر)
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
@@ -202,7 +131,7 @@ class _MissionsListScreenState extends State<MissionsListScreen>
               dividerColor: Colors.transparent,
               tabs: const [
                 Tab(text: 'نشط'),
-                Tab(text: 'جديد'),
+                Tab(text: 'مغلق'),
                 Tab(text: 'الكل'),
               ],
             ),
@@ -215,43 +144,40 @@ class _MissionsListScreenState extends State<MissionsListScreen>
   Widget _buildList(String type) {
     final missions = _filtered(type);
     if (missions.isEmpty) {
-      return Center(
-        child: Text(
-          'لا توجد بلاغات',
-          style: TextStyle(color: Colors.grey.shade600),
-        ),
-      );
+      return Center(child: Text('لا توجد بلاغات', style: TextStyle(color: Colors.grey.shade600)));
     }
-
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: missions.length,
-      itemBuilder: (context, index) => _MissionCard(
-        mission: missions[index],
-        onTap: () {
-          // Navigator.of(context).pushNamed('/guardian/report-details');
-        },
-      ),
+      itemBuilder: (context, index) {
+        final m = missions[index];
+        return _MissionCard(
+          mission: m,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => MissionDetailsScreen(reportId: m.reportId)),
+          ),
+        );
+      },
     );
   }
 }
 
 class _MissionCard extends StatelessWidget {
   const _MissionCard({required this.mission, required this.onTap});
-
-  final _Mission mission;
+  final MissionData mission;
   final VoidCallback onTap;
 
   static const Color _navy = Color(0xFF3D5A6C);
-  static const Color _bg = Color(0xFFF4EFEB);
+  static const Color _bg   = Color(0xFFF4EFEB);
 
   @override
   Widget build(BuildContext context) {
-    final isActive = mission.status == 'نشط';
-    final statusColor =
-        isActive ? const Color(0xFFFFEB3B) : const Color(0xFFEF5350).withOpacity(0.15);
-    final statusTextColor =
-        isActive ? Colors.black87 : const Color(0xFFEF5350);
+    final isActive = mission.scannedArea < 100;
+    final statusColor = isActive
+        ? const Color(0xFFFFEB3B)
+        : const Color(0xFFEF5350).withOpacity(0.15);
+    final statusTextColor = isActive ? Colors.black87 : const Color(0xFFEF5350);
     final statusLabel = isActive ? 'نشط' : 'مغلقة';
 
     return InkWell(
@@ -269,13 +195,7 @@ class _MissionCard extends StatelessWidget {
                 : const Color(0xFFEF5350).withOpacity(0.2),
             width: 1.5,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            )
-          ],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,29 +213,15 @@ class _MissionCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(mission.childName,
-                          style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w700)),
-                      Text(mission.id,
-                          style: const TextStyle(
-                              fontSize: 12, color: Color(0xFF9E9E9E))),
+                      Text(mission.childName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      Text(mission.reportId, style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
                     ],
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    statusLabel,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: statusTextColor,
-                    ),
-                  ),
+                  decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(20)),
+                  child: Text(statusLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: statusTextColor)),
                 ),
               ],
             ),
@@ -326,10 +232,7 @@ class _MissionCard extends StatelessWidget {
               children: [
                 const Icon(Icons.location_on, size: 14, color: Color(0xFFEF5350)),
                 const SizedBox(width: 4),
-                Expanded(
-                  child: Text(mission.location,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF757575))),
-                ),
+                Expanded(child: Text(mission.lastLocation, style: const TextStyle(fontSize: 12, color: Color(0xFF757575)))),
               ],
             ),
             const SizedBox(height: 4),
@@ -339,63 +242,24 @@ class _MissionCard extends StatelessWidget {
               children: [
                 const Icon(Icons.access_time, size: 14, color: Color(0xFF9E9E9E)),
                 const SizedBox(width: 4),
-                Text(mission.time,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
+                Text(mission.disappearTime, style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
               ],
             ),
-
             const SizedBox(height: 10),
 
             // الوصف
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: _bg,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                mission.description,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF555555)),
-              ),
+              decoration: BoxDecoration(color: _bg, borderRadius: BorderRadius.circular(8)),
+              child: Text(mission.childDescription, style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
             ),
-
-            // معلومات الدرون (بدون شريط أخضر)
-            if (mission.droneId != null) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: _navy.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.flight, size: 14, color: _navy),
-                    const SizedBox(width: 6),
-                    Text(
-                      'الدرون: ${mission.droneId}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: _navy,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      'جار البحث - ${mission.droneProgress ?? 0}% من المنطقة',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF757575)),
-                    ),
-                  ],
-                ),
-              ),
-            ],
 
             const SizedBox(height: 12),
             const Divider(height: 1),
             const SizedBox(height: 10),
 
-            // ✅ عرض التفاصيل (مثل ما كان) + السهم معكوس
+            // عرض التفاصيل
             Align(
               alignment: Alignment.centerLeft,
               child: InkWell(
@@ -406,20 +270,9 @@ class _MissionCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        'عرض التفاصيل',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: _navy,
-                        ),
-                      ),
+                      Text('عرض التفاصيل', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy)),
                       SizedBox(width: 6),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        size: 14,
-                        color: _navy,
-                      ),
+                      Icon(Icons.arrow_forward_ios, size: 14, color: _navy),
                     ],
                   ),
                 ),
