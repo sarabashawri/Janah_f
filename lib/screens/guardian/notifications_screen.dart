@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -33,50 +35,56 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  // ✅ موديل بسيط للتنبيه
-  final List<_NotificationItem> _items = [
-    _NotificationItem(
-      title: 'بدأت مهمة البحث',
-      description: 'تم إطلاق الدرون وبدأ البحث في المنطقة المحددة',
-      time: 'منذ 15 دقيقة',
-      icon: Icons.flight_takeoff,
-      tint: Color(0xFF00D995),
-      isRead: false,
-    ),
-    _NotificationItem(
-      title: 'تم العثور على البلاغ #3230',
-      description: 'تم العثور على الطفل بحالة جيدة في حي الروضة',
-      time: 'منذ ساعة',
-      icon: Icons.check_circle,
-      tint: Color(0xFF00D995),
-      isRead: false,
-    ),
-    _NotificationItem(
-      title: 'تحديث موقع البلاغ #1234',
-      description: 'تم تحديث موقع البحث، الدرون في طريقها للمكان',
-      time: 'منذ 3 ساعات',
-      icon: Icons.location_on,
-      tint: Color(0xFF2196F3),
-      isRead: false,
-    ),
-    _NotificationItem(
-      title: 'تم استلام البلاغ',
-      description: 'تم استلام بلاغكم بنجاح وسيتم التواصل معكم قريباً',
-      time: 'منذ 3 ساعات',
-      icon: Icons.notifications,
-      tint: Color(0xFF9E9E9E),
-      isRead: true,
-    ),
-  ];
+  final _db = FirebaseFirestore.instance;
+  final _uid = FirebaseAuth.instance.currentUser?.uid;
 
-  int get _unreadCount => _items.where((e) => !e.isRead).length;
+  Stream<QuerySnapshot> get _notificationsStream => _db
+      .collection('notifications')
+      .where('guardianId', isEqualTo: _uid)
+      .orderBy('createdAt', descending: true)
+      .snapshots();
 
-  void _markAllAsRead() {
-    setState(() {
-      for (final n in _items) {
-        n.isRead = true;
-      }
-    });
+  Future<void> _markAllAsRead() async {
+    final snap = await _db
+        .collection('notifications')
+        .where('guardianId', isEqualTo: _uid)
+        .where('isRead', isEqualTo: false)
+        .get();
+    final batch = _db.batch();
+    for (final doc in snap.docs) {
+      batch.update(doc.reference, {'isRead': true});
+    }
+    await batch.commit();
+  }
+
+  Future<void> _markAsRead(String docId) async {
+    await _db.collection('notifications').doc(docId).update({'isRead': true});
+  }
+
+  IconData _iconFromType(String type) {
+    switch (type) {
+      case 'missionStarted':  return Icons.flight_takeoff;
+      case 'childFound':      return Icons.check_circle;
+      case 'locationUpdated': return Icons.location_on;
+      default:                return Icons.notifications;
+    }
+  }
+
+  Color _tintFromType(String type) {
+    switch (type) {
+      case 'missionStarted':  return const Color(0xFF00D995);
+      case 'childFound':      return const Color(0xFF00D995);
+      case 'locationUpdated': return const Color(0xFF2196F3);
+      default:                return const Color(0xFF9E9E9E);
+    }
+  }
+
+  String _timeAgo(Timestamp? ts) {
+    if (ts == null) return '';
+    final diff = DateTime.now().difference(ts.toDate());
+    if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
+    if (diff.inHours < 24)   return 'منذ ${diff.inHours} ساعة';
+    return 'منذ ${diff.inDays} يوم';
   }
 
   @override
@@ -149,16 +157,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       left: 4,
                       top: 0,
                       bottom: 0,
-                      child: TextButton(
-                        onPressed: _unreadCount == 0 ? null : _markAllAsRead,
-                        child: Text(
-                          'قراءة الكل',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: _unreadCount == 0 ? Colors.white38 : Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: _notificationsStream,
+                        builder: (context, snap) {
+                          final unread = snap.data?.docs
+                              .where((d) => (d.data() as Map)['isRead'] == false)
+                              .length ?? 0;
+                          return TextButton(
+                            onPressed: unread == 0 ? null : _markAllAsRead,
+                            child: Text(
+                              'قراءة الكل',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: unread == 0 ? Colors.white38 : Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -168,21 +184,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               const SizedBox(height: 16),
 
               Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  itemCount: _items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) {
-                    final n = _items[i];
-                    return _NotificationCardWhite(
-                      title: n.title,
-                      description: n.description,
-                      time: n.time,
-                      icon: n.icon,
-                      tint: n.tint,
-                      isRead: n.isRead,
-                      onTap: () {
-                        setState(() => n.isRead = true);
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: _notificationsStream,
+                  builder: (context, snap) {
+                    if (snap.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final docs = snap.data?.docs ?? [];
+                    if (docs.isEmpty) {
+                      return const Center(
+                        child: Text('لا توجد إشعارات حتى الآن',
+                            style: TextStyle(color: Color(0xFF9E9E9E))),
+                      );
+                    }
+                    return ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      itemCount: docs.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, i) {
+                        final data = docs[i].data() as Map<String, dynamic>;
+                        final type = data['type'] as String? ?? 'general';
+                        final isRead = data['isRead'] as bool? ?? false;
+                        return _NotificationCardWhite(
+                          title: data['title'] ?? '',
+                          description: data['description'] ?? '',
+                          time: _timeAgo(data['createdAt'] as Timestamp?),
+                          icon: _iconFromType(type),
+                          tint: _tintFromType(type),
+                          isRead: isRead,
+                          onTap: () => _markAsRead(docs[i].id),
+                        );
                       },
                     );
                   },
@@ -196,23 +227,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 }
 
-class _NotificationItem {
-  _NotificationItem({
-    required this.title,
-    required this.description,
-    required this.time,
-    required this.icon,
-    required this.tint,
-    required this.isRead,
-  });
-
-  final String title;
-  final String description;
-  final String time;
-  final IconData icon;
-  final Color tint;
-  bool isRead;
-}
 
 class _NotificationCardWhite extends StatelessWidget {
   const _NotificationCardWhite({
