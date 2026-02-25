@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'reports_list_screen.dart';
 import 'profile_screen.dart';
 
@@ -154,36 +155,47 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       ],
                     ),
                     // الإشعارات
-                    Stack(
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            Navigator.of(context).pushNamed('/guardian/notifications');
-                          },
-                          icon: const Icon(
-                            Icons.notifications_outlined,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFEF5350),
-                              shape: BoxShape.circle,
+                    StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('notifications')
+                          .where('guardianId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                          .where('isRead', isEqualTo: false)
+                          .snapshots(),
+                      builder: (context, snap) {
+                        final unread = snap.data?.docs.length ?? 0;
+                        return Stack(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                Navigator.of(context).pushNamed('/guardian/notifications');
+                              },
+                              icon: const Icon(
+                                Icons.notifications_outlined,
+                                color: Colors.white,
+                                size: 28,
+                              ),
                             ),
-                            constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                            child: const Text(
-                              '3',
-                              style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ],
+                            if (unread > 0)
+                              Positioned(
+                                right: 8,
+                                top: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFEF5350),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                                  child: Text(
+                                    '$unread',
+                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -403,7 +415,9 @@ class _HomeDashboardState extends State<HomeDashboard> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
+                child: GestureDetector(
+                  onTap: () => launchUrl(Uri(scheme: 'tel', path: '911')),
+                  child: Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEF5350),
@@ -433,6 +447,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       const Icon(Icons.arrow_forward, color: Colors.white, size: 24),
                     ],
                   ),
+                ),
                 ),
               ),
             ),
