@@ -1,96 +1,27 @@
 import 'package:flutter/material.dart';
-
-class ReportData {
-  final String reportId;
-  final String childName;
-  final String location;
-  final String disappearTime;
-  final String createdAgo;
-  final String status;
-  final Color statusColor;
-  final List<TimelineEvent> timeline;
-
-  const ReportData({
-    required this.reportId,
-    required this.childName,
-    required this.location,
-    required this.disappearTime,
-    required this.createdAgo,
-    required this.status,
-    required this.statusColor,
-    required this.timeline,
-  });
-}
-
-class TimelineEvent {
-  final String title;
-  final String description;
-  final String time;
-  final IconData icon;
-  final Color color;
-
-  const TimelineEvent({
-    required this.title,
-    required this.description,
-    required this.time,
-    required this.icon,
-    required this.color,
-  });
-}
-
-final Map<String, ReportData> allReports = {
-  '#1234': const ReportData(
-    reportId: '#1234',
-    childName: 'محمد أحمد',
-    location: 'حي النزهة، شارع الملك فهد',
-    disappearTime: 'اليوم 14:30',
-    createdAgo: 'منذ 3 ساعات',
-    status: 'جاري البحث',
-    statusColor: Color(0xFF00D995),
-    timeline: [
-      TimelineEvent(title: 'تم العثور على الطفل', description: 'الطفل بحالة جيدة - يتم نقله للموقع الآمن', time: 'منذ ساعة', icon: Icons.check_circle, color: Color(0xFF00D995)),
-      TimelineEvent(title: 'بدأ فريق الإنقاذ البحث', description: 'تم الموافقة على عملية البحث', time: 'منذ ساعتين', icon: Icons.people, color: Color(0xFF2196F3)),
-      TimelineEvent(title: 'تم استلام البلاغ', description: 'بانتظار الموافقة من قبل فريق الإنقاذ', time: 'منذ 3 ساعات', icon: Icons.receipt_long, color: Color(0xFF9E9E9E)),
-    ],
-  ),
-  '#1235': const ReportData(
-    reportId: '#1235',
-    childName: 'سارة أحمد',
-    location: 'حي الروضة',
-    disappearTime: 'اليوم 10:00',
-    createdAgo: 'منذ 15 دقيقة',
-    status: 'تم العثور',
-    statusColor: Color(0xFF00D995),
-    timeline: [
-      TimelineEvent(title: 'تم العثور على الطفلة', description: 'الطفلة بحالة جيدة وبأمان', time: 'منذ 5 دقائق', icon: Icons.check_circle, color: Color(0xFF00D995)),
-      TimelineEvent(title: 'بدأ فريق الإنقاذ البحث', description: 'الفريق في المنطقة يبحث', time: 'منذ 10 دقائق', icon: Icons.people, color: Color(0xFF2196F3)),
-      TimelineEvent(title: 'تم استلام البلاغ', description: 'بانتظار الموافقة من قبل فريق الإنقاذ', time: 'منذ 15 دقيقة', icon: Icons.receipt_long, color: Color(0xFF9E9E9E)),
-    ],
-  ),
-  '#1232': const ReportData(
-    reportId: '#1232',
-    childName: 'فاطمة ماجد',
-    location: 'حي العليا',
-    disappearTime: 'منذ أسبوع 09:15',
-    createdAgo: 'منذ أسبوع',
-    status: 'مغلق',
-    statusColor: Color(0xFFFF5252),
-    timeline: [
-      TimelineEvent(title: 'تم إغلاق البلاغ', description: 'تم إغلاق البلاغ بعد التحقق', time: 'منذ يومين', icon: Icons.cancel, color: Color(0xFFFF5252)),
-      TimelineEvent(title: 'بدأ فريق الإنقاذ البحث', description: 'تم الموافقة على عملية البحث', time: 'منذ 5 أيام', icon: Icons.people, color: Color(0xFF2196F3)),
-      TimelineEvent(title: 'تم استلام البلاغ', description: 'بانتظار الموافقة من قبل فريق الإنقاذ', time: 'منذ أسبوع', icon: Icons.receipt_long, color: Color(0xFF9E9E9E)),
-    ],
-  ),
-};
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ReportDetailsScreen extends StatelessWidget {
   const ReportDetailsScreen({super.key});
 
+  String _timeAgo(dynamic timestamp) {
+    if (timestamp == null) return '';
+    DateTime date;
+    if (timestamp is Timestamp) {
+      date = timestamp.toDate();
+    } else {
+      return '';
+    }
+    final diff = DateTime.now().difference(date);
+    if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
+    if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
+    return 'منذ ${diff.inDays} يوم';
+  }
+
   @override
   Widget build(BuildContext context) {
     final String reportId =
-        (ModalRoute.of(context)?.settings.arguments as String?) ?? '#1234';
-    final ReportData report = allReports[reportId] ?? allReports['#1234']!;
+        (ModalRoute.of(context)?.settings.arguments as String?) ?? '';
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -129,87 +60,184 @@ class ReportDetailsScreen extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Status Card
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('reports')
+                      .doc(reportId)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData || !snapshot.data!.exists) {
+                      return const Center(child: Text('البلاغ غير موجود'));
+                    }
+
+                    final data = snapshot.data!.data() as Map<String, dynamic>;
+                    final status = data['status'] ?? 'active';
+                    final statusColor = status == 'active'
+                        ? const Color(0xFF00D995)
+                        : status == 'found'
+                            ? const Color(0xFF2196F3)
+                            : const Color(0xFFFF5252);
+                    final statusText = status == 'active'
+                        ? 'جاري البحث'
+                        : status == 'found'
+                            ? 'تم العثور'
+                            : 'مغلق';
+
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Status Card
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(report.createdAgo, style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  decoration: BoxDecoration(color: report.statusColor, borderRadius: BorderRadius.circular(20)),
-                                  child: Text(report.status, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(_timeAgo(data['createdAt']),
+                                        style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(20)),
+                                      child: Text(statusText,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                const Text('تفاصيل البلاغ',
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                                const SizedBox(height: 4),
+                                Text('تم الإنشاء ${_timeAgo(data['createdAt'])}',
+                                    style: const TextStyle(fontSize: 13, color: Color(0xFF757575))),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Child Info Card
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('بيانات الطفل',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                                const SizedBox(height: 16),
+                                _buildInfoRow(icon: Icons.person, label: 'اسم الطفل', value: data['childName'] ?? ''),
+                                const SizedBox(height: 12),
+                                _buildInfoRow(icon: Icons.description, label: 'الوصف', value: data['description'] ?? ''),
+                                const SizedBox(height: 12),
+                                _buildInfoRow(icon: Icons.location_on, label: 'آخر موقع', value: data['location'] ?? ''),
+                                const SizedBox(height: 12),
+                                _buildInfoRow(
+                                  icon: Icons.access_time,
+                                  label: 'وقت الاختفاء',
+                                  value: data['disappearanceTime'] ?? '',
+                                  isLast: true,
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
-                            Text('بلاغ رقم ${report.reportId}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            Text('تم الإنشاء ${report.createdAgo}', style: const TextStyle(fontSize: 13, color: Color(0xFF757575))),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Guardian Info Card
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('بيانات ولي الأمر',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                                const SizedBox(height: 16),
+                                _buildInfoRow(icon: Icons.person_outline, label: 'الاسم', value: data['guardianName'] ?? ''),
+                                const SizedBox(height: 12),
+                                _buildInfoRow(icon: Icons.phone, label: 'رقم الجوال', value: data['guardianPhone'] ?? '', isLast: true),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Timeline
+                          const Text('تحديثات البحث',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
+                            ),
+                            child: Column(
+                              children: [
+                                _buildTimelineItem(
+                                  title: 'تم استلام البلاغ',
+                                  description: 'بانتظار الموافقة من قبل فريق الإنقاذ',
+                                  time: _timeAgo(data['createdAt']),
+                                  icon: Icons.receipt_long,
+                                  color: const Color(0xFF9E9E9E),
+                                  isLast: status == 'active',
+                                ),
+                                if (status != 'active') ...[
+                                  _buildTimelineItem(
+                                    title: 'بدأ فريق الإنقاذ البحث',
+                                    description: 'تم الموافقة على عملية البحث',
+                                    time: '',
+                                    icon: Icons.people,
+                                    color: const Color(0xFF2196F3),
+                                    isLast: status == 'inProgress',
+                                  ),
+                                ],
+                                if (status == 'found') ...[
+                                  _buildTimelineItem(
+                                    title: 'تم العثور على الطفل',
+                                    description: 'الطفل بحالة جيدة',
+                                    time: '',
+                                    icon: Icons.check_circle,
+                                    color: const Color(0xFF00D995),
+                                    isLast: true,
+                                  ),
+                                ],
+                                if (status == 'closed') ...[
+                                  _buildTimelineItem(
+                                    title: 'تم إغلاق البلاغ',
+                                    description: 'تم إغلاق البلاغ بعد التحقق',
+                                    time: '',
+                                    icon: Icons.cancel,
+                                    color: const Color(0xFFFF5252),
+                                    isLast: true,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
                       ),
-                      const SizedBox(height: 20),
-                      // Child Info Card
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('بيانات الطفل', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 16),
-                            _buildInfoRow(icon: Icons.person, label: 'اسم الطفل', value: report.childName),
-                            const SizedBox(height: 12),
-                            _buildInfoRow(icon: Icons.location_on, label: 'آخر موقع', value: report.location),
-                            const SizedBox(height: 12),
-                            _buildInfoRow(icon: Icons.access_time, label: 'وقت الاختفاء', value: report.disappearTime, isLast: true),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      const Text('تحديثات البحث', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
-                        ),
-                        child: Column(
-                          children: report.timeline.asMap().entries.map((entry) =>
-                            _buildTimelineItem(
-                              title: entry.value.title,
-                              description: entry.value.description,
-                              time: entry.value.time,
-                              icon: entry.value.icon,
-                              color: entry.value.color,
-                              isLast: entry.key == report.timeline.length - 1,
-                            )
-                          ).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -261,8 +289,10 @@ class ReportDetailsScreen extends StatelessWidget {
               Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
               Text(description, style: const TextStyle(fontSize: 12, color: Color(0xFF757575))),
-              const SizedBox(height: 4),
-              Text(time, style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
+              if (time.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(time, style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
+              ],
               if (!isLast) const SizedBox(height: 16),
             ],
           ),
