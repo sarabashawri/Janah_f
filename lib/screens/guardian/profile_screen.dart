@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -9,18 +11,45 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditing = false;
-  String? _profileImagePath;
+  bool _isLoading = true;
 
-  final _nameController = TextEditingController(text: 'أحمد محمد');
-  final _phoneController = TextEditingController(text: '0512345678');
-  final _emailController = TextEditingController(text: 'ahmed@example.com');
-  final _emergencyPhoneController = TextEditingController(text: '0509876543');
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _emergencyPhoneController = TextEditingController();
 
-  // إعدادات التنبيهات
   bool _notifySearch = true;
   bool _notifyFound = true;
   bool _notifyUpdate = true;
   bool _notifyGeneral = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (doc.exists && mounted) {
+        final data = doc.data()!;
+        setState(() {
+          _nameController.text = data['name'] ?? '';
+          _phoneController.text = data['phone'] ?? '';
+          _emailController.text = data['email'] ?? user.email ?? '';
+          _emergencyPhoneController.text = data['emergencyPhone'] ?? '';
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _emailController.text = user.email ?? '';
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -31,20 +60,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  void _saveChanges() {
-    setState(() => _isEditing = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم حفظ التعديلات بنجاح'), backgroundColor: Color(0xFF00D995)),
-    );
+  Future<void> _saveChanges() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'name': _nameController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'emergencyPhone': _emergencyPhoneController.text.trim(),
+      });
+      setState(() => _isEditing = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم حفظ التعديلات بنجاح'), backgroundColor: Color(0xFF00D995)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   void _showChangePasswordDialog() {
-    final _oldPassController = TextEditingController();
-    final _newPassController = TextEditingController();
-    final _confirmPassController = TextEditingController();
-    bool _obscureOld = true;
-    bool _obscureNew = true;
-    bool _obscureConfirm = true;
+    final oldPassController = TextEditingController();
+    final newPassController = TextEditingController();
+    final confirmPassController = TextEditingController();
+    bool obscureOld = true;
+    bool obscureNew = true;
+    bool obscureConfirm = true;
 
     showDialog(
       context: context,
@@ -58,40 +105,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
-                  controller: _oldPassController,
-                  obscureText: _obscureOld,
+                  controller: oldPassController,
+                  obscureText: obscureOld,
                   decoration: InputDecoration(
                     labelText: 'كلمة المرور الحالية',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscureOld ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setDialogState(() => _obscureOld = !_obscureOld),
+                      icon: Icon(obscureOld ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setDialogState(() => obscureOld = !obscureOld),
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
-                  controller: _newPassController,
-                  obscureText: _obscureNew,
+                  controller: newPassController,
+                  obscureText: obscureNew,
                   decoration: InputDecoration(
                     labelText: 'كلمة المرور الجديدة',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscureNew ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setDialogState(() => _obscureNew = !_obscureNew),
+                      icon: Icon(obscureNew ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setDialogState(() => obscureNew = !obscureNew),
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
-                  controller: _confirmPassController,
-                  obscureText: _obscureConfirm,
+                  controller: confirmPassController,
+                  obscureText: obscureConfirm,
                   decoration: InputDecoration(
                     labelText: 'تأكيد كلمة المرور',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     suffixIcon: IconButton(
-                      icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setDialogState(() => _obscureConfirm = !_obscureConfirm),
+                      icon: Icon(obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setDialogState(() => obscureConfirm = !obscureConfirm),
                     ),
                   ),
                 ),
@@ -103,17 +150,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: const Text('إلغاء', style: TextStyle(color: Color(0xFF757575))),
               ),
               ElevatedButton(
-                onPressed: () {
-                  if (_newPassController.text != _confirmPassController.text) {
+                onPressed: () async {
+                  if (newPassController.text != confirmPassController.text) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('كلمة المرور غير متطابقة'), backgroundColor: Colors.red),
                     );
                     return;
                   }
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('تم تغيير كلمة المرور بنجاح'), backgroundColor: Color(0xFF00D995)),
-                  );
+                  try {
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user != null) {
+                      await user.updatePassword(newPassController.text);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('تم تغيير كلمة المرور بنجاح'), backgroundColor: Color(0xFF00D995)),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('خطأ: $e'), backgroundColor: Colors.red),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3D5A6C),
@@ -140,37 +197,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildNotifToggle(
-                  'تنبيهات بدء البحث',
-                  'عند إطلاق عملية البحث',
-                  Icons.flight_takeoff,
-                  _notifySearch,
-                  (v) => setDialogState(() => _notifySearch = v),
-                ),
+                _buildNotifToggle('تنبيهات بدء البحث', 'عند إطلاق عملية البحث', Icons.flight_takeoff, _notifySearch, (v) => setDialogState(() => _notifySearch = v)),
                 const Divider(),
-                _buildNotifToggle(
-                  'تنبيهات العثور على الطفل',
-                  'عند العثور على الطفل',
-                  Icons.check_circle_outline,
-                  _notifyFound,
-                  (v) => setDialogState(() => _notifyFound = v),
-                ),
+                _buildNotifToggle('تنبيهات العثور على الطفل', 'عند العثور على الطفل', Icons.check_circle_outline, _notifyFound, (v) => setDialogState(() => _notifyFound = v)),
                 const Divider(),
-                _buildNotifToggle(
-                  'تنبيهات تحديث الموقع',
-                  'عند تحديث موقع البحث',
-                  Icons.location_on_outlined,
-                  _notifyUpdate,
-                  (v) => setDialogState(() => _notifyUpdate = v),
-                ),
+                _buildNotifToggle('تنبيهات تحديث الموقع', 'عند تحديث موقع البحث', Icons.location_on_outlined, _notifyUpdate, (v) => setDialogState(() => _notifyUpdate = v)),
                 const Divider(),
-                _buildNotifToggle(
-                  'التنبيهات العامة',
-                  'إشعارات عامة من التطبيق',
-                  Icons.notifications_outlined,
-                  _notifyGeneral,
-                  (v) => setDialogState(() => _notifyGeneral = v),
-                ),
+                _buildNotifToggle('التنبيهات العامة', 'إشعارات عامة من التطبيق', Icons.notifications_outlined, _notifyGeneral, (v) => setDialogState(() => _notifyGeneral = v)),
               ],
             ),
             actions: [
@@ -182,10 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SnackBar(content: Text('تم حفظ إعدادات التنبيهات'), backgroundColor: Color(0xFF00D995)),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3D5A6C),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3D5A6C), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                 child: const Text('حفظ', style: TextStyle(color: Colors.white)),
               ),
             ],
@@ -209,24 +239,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
         ),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeColor: const Color(0xFF00D995),
-        ),
+        Switch(value: value, onChanged: onChanged, activeColor: const Color(0xFF00D995)),
       ],
-    );
-  }
-
-  void _pickImage() {
-    // في التطبيق الحقيقي استخدم image_picker
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('سيتم فتح معرض الصور'), backgroundColor: Color(0xFF3D5A6C)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -241,10 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   height: 80,
                   decoration: const BoxDecoration(
                     color: Color(0xFF3D5A6C),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(30),
-                      bottomRight: Radius.circular(30),
-                    ),
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
                   ),
                   child: Stack(
                     children: [
@@ -275,7 +295,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 const SizedBox(height: 24),
 
-                // صورة الملف الشخصي
+                // صورة الملف
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
@@ -287,42 +307,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: Column(
                       children: [
-                        GestureDetector(
-                          onTap: _isEditing ? _pickImage : null,
-                          child: Stack(
-                            children: [
-                              CircleAvatar(
-                                radius: 50,
-                                backgroundColor: const Color(0xFFE0E0E0),
-                                backgroundImage: _profileImagePath != null ? AssetImage(_profileImagePath!) : null,
-                                child: _profileImagePath == null
-                                    ? const Icon(Icons.person, size: 50, color: Color(0xFF757575))
-                                    : null,
-                              ),
-                              if (_isEditing)
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: GestureDetector(
-                                    onTap: _pickImage,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: const BoxDecoration(color: Color(0xFF3D5A6C), shape: BoxShape.circle),
-                                      child: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
+                        const CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Color(0xFFE0E0E0),
+                          child: Icon(Icons.person, size: 50, color: Color(0xFF757575)),
                         ),
-                        if (_isEditing) ...[
-                          const SizedBox(height: 12),
-                          TextButton.icon(
-                            onPressed: _pickImage,
-                            icon: const Icon(Icons.photo_library, color: Color(0xFF3D5A6C)),
-                            label: const Text('تغيير الصورة', style: TextStyle(color: Color(0xFF3D5A6C), fontWeight: FontWeight.w600)),
-                          ),
-                        ],
                         const SizedBox(height: 8),
                         Text(_nameController.text, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 4),
@@ -353,7 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         const SizedBox(height: 16),
                         _buildInfoField(icon: Icons.phone_outlined, label: 'رقم الجوال', controller: _phoneController),
                         const SizedBox(height: 16),
-                        _buildInfoField(icon: Icons.email_outlined, label: 'البريد الإلكتروني', controller: _emailController),
+                        _buildInfoField(icon: Icons.email_outlined, label: 'البريد الإلكتروني', controller: _emailController, enabled: false),
                         const SizedBox(height: 16),
                         _buildInfoField(icon: Icons.phone_outlined, label: 'رقم جوال الطوارئ', controller: _emergencyPhoneController, isLast: true),
                       ],
@@ -414,7 +403,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoField({required IconData icon, required String label, required TextEditingController controller, bool isLast = false}) {
+  Widget _buildInfoField({required IconData icon, required String label, required TextEditingController controller, bool isLast = false, bool enabled = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -422,7 +411,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          enabled: _isEditing,
+          enabled: _isEditing && enabled,
           textAlign: TextAlign.right,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: const Color(0xFF757575)),
@@ -431,7 +420,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFF5F5F5))),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2)),
             filled: true,
-            fillColor: _isEditing ? const Color(0xFFF9F9F9) : const Color(0xFFF5F5F5),
+            fillColor: (_isEditing && enabled) ? const Color(0xFFF9F9F9) : const Color(0xFFF5F5F5),
           ),
         ),
       ],
@@ -469,12 +458,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
                 Navigator.pushNamedAndRemoveUntil(context, '/guardian/login', (route) => false);
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF5350)),
-              child: const Text('تأكيد'),
+              child: const Text('تأكيد', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
