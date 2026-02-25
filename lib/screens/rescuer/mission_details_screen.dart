@@ -271,12 +271,22 @@ class MissionDetailsScreen extends StatelessWidget {
                       // التحكم بالمهمة
                       _card(title: 'التحكم بالمهمة', children: [
                         SizedBox(
-                          height: 52,
-                          child: ElevatedButton.icon(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
                             onPressed: () => _showCompleteMissionDialog(context),
-                            icon: const Icon(Icons.play_arrow, color: Colors.white),
-                            label: const Text('بدء', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
-                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00D995), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF00D995),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.play_arrow, color: Colors.white, size: 24),
+                                SizedBox(width: 8),
+                                Text('بدء', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
+                              ],
+                            ),
                           ),
                         ),
                       ]),
@@ -326,8 +336,11 @@ class MissionDetailsScreen extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
     ),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-      Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Align(
+        alignment: Alignment.centerRight,
+        child: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+      ),
       const SizedBox(height: 14),
       ...children,
     ]),
@@ -369,7 +382,7 @@ class _StatItem extends StatelessWidget {
   );
 }
 
-// الأيقونة مع الكلام في نفس الاتجاه (RTL)
+// الأيقونة قبل الكلام (يمين الشاشة في RTL)
 class _InfoRow extends StatelessWidget {
   const _InfoRow({required this.icon, this.label, required this.value, this.bold = false});
   final IconData icon;
@@ -381,23 +394,24 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // النص على اليمين
+        // النص
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (label != null) ...[
-                Text(label!, textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
+                Text(label!, style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
                 const SizedBox(height: 2),
               ],
-              Text(value, textAlign: TextAlign.right,
+              Text(value,
                 style: TextStyle(fontSize: 14, fontWeight: bold ? FontWeight.w800 : FontWeight.w600)),
             ],
           ),
         ),
         const SizedBox(width: 10),
-        // الأيقونة بجانب النص على اليمين
+        // الأيقونة على أقصى اليمين
         Padding(
           padding: const EdgeInsets.only(top: 2),
           child: Icon(icon, size: 20, color: const Color(0xFF9E9E9E)),
@@ -407,17 +421,17 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-// كارد نقطة الاشتباه — زي الفيقما
+// كارد نقطة الاشتباه — زي الفيقما بالضبط
 class _SuspiciousPointCard extends StatelessWidget {
   const _SuspiciousPointCard({required this.point, required this.onTap});
   final SuspiciousPoint point;
   final VoidCallback onTap;
 
-  Color get _bg    => point.status == 'غير مطابق' ? const Color(0xFFFFEBEB) : const Color(0xFFFFFDE7);
+  Color get _bg     => point.status == 'غير مطابق' ? const Color(0xFFFFEBEB) : const Color(0xFFFFFDE7);
   Color get _border => point.status == 'غير مطابق' ? const Color(0xFFEF5350) : const Color(0xFFFFEB3B);
   Color get _badgeBg => point.status == 'غير مطابق' ? const Color(0xFFEF5350)
-                      : point.status == 'مطابق'     ? const Color(0xFF00D995)
-                      : const Color(0xFFFFB300);
+                       : point.status == 'مطابق'    ? const Color(0xFF00D995)
+                       : const Color(0xFFFFB300);
 
   @override
   Widget build(BuildContext context) {
@@ -429,43 +443,49 @@ class _SuspiciousPointCard extends StatelessWidget {
         border: Border.all(color: _border, width: 1.5),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // الرقم + الحالة
+          // الصف الأول: الرقم يمين، الباج يسار
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // الباج على اليسار
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                 decoration: BoxDecoration(color: _badgeBg, borderRadius: BorderRadius.circular(20)),
-                child: Text(point.status, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                child: Text(point.status,
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
               ),
-              Text('نقطة اشتباه #${point.number}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+              // الرقم على اليمين
+              Text('نقطة اشتباه #${point.number}',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: 6),
-          // الوقت
-          Text(point.time, style: const TextStyle(fontSize: 12, color: Color(0xFF757575)), textAlign: TextAlign.right),
+          // الوقت (يسار — بدون أيقونة)
+          Text(point.time,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF757575))),
           const SizedBox(height: 4),
-          // الموقع
+          // الموقع مع أيقونة
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Text(point.location, style: const TextStyle(fontSize: 12, color: Color(0xFF757575))),
-              const SizedBox(width: 4),
               const Icon(Icons.location_on, size: 12, color: Color(0xFFEF5350)),
+              const SizedBox(width: 4),
+              Text(point.location,
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF757575))),
             ],
           ),
           const SizedBox(height: 10),
-          // زر عرض والتحقق
+          // زر عرض والتحقق — يسار مع سهم forward
           GestureDetector(
             onTap: onTap,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
               children: const [
-                Text('عرض والتحقق', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3D5A6C))),
+                Icon(Icons.arrow_forward_ios, size: 13, color: Color(0xFF3D5A6C)),
                 SizedBox(width: 4),
-                Icon(Icons.arrow_back_ios, size: 13, color: Color(0xFF3D5A6C)),
+                Text('عرض والتحقق',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF3D5A6C))),
               ],
             ),
           ),
