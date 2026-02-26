@@ -167,10 +167,13 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3))],
                         ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('مقارنة الصور',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                            const Align(
+                              alignment: Alignment.centerRight,
+                              child: Text('مقارنة الصور',
+                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                            ),
                             const SizedBox(height: 14),
                             Row(
                               children: [
@@ -254,13 +257,15 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           border: Border.all(color: _green.withOpacity(0.4), width: 1.5),
                         ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // الأيقونة قبل الكلام على اليمين
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: const [
                                       Text('توصية الذكاء الاصطناعي',
                                           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF2E7D32))),
@@ -278,17 +283,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                               ],
                             ),
                             const SizedBox(height: 14),
-                            // شريط الثقة
+                            // شريط الثقة — 82% على اليمين
                             Row(
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
-                                    Text('82%', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF2E7D32), fontSize: 22)),
-                                    Text('نسبة الثقة', style: TextStyle(fontSize: 11, color: Color(0xFF66BB6A))),
-                                  ],
-                                ),
-                                const SizedBox(width: 12),
                                 Expanded(
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(6),
@@ -299,6 +296,14 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                       minHeight: 10,
                                     ),
                                   ),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: const [
+                                    Text('82%', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF2E7D32), fontSize: 22)),
+                                    Text('نسبة الثقة', style: TextStyle(fontSize: 11, color: Color(0xFF66BB6A))),
+                                  ],
                                 ),
                               ],
                             ),
@@ -346,14 +351,20 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3))],
                         ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('قرار التحقق',
-                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                            const Align(
+                              alignment: Alignment.centerRight,
+                              child: Text('قرار التحقق',
+                                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                            ),
                             const SizedBox(height: 4),
-                            const Text('بناءً على المعلومات أعلاه، هل هذا هو الطفل المفقود؟',
-                                style: TextStyle(fontSize: 12, color: Color(0xFF757575)),
-                                textAlign: TextAlign.right),
+                            const Align(
+                              alignment: Alignment.centerRight,
+                              child: Text('بناءً على المعلومات أعلاه، هل هذا هو الطفل المفقود؟',
+                                  style: TextStyle(fontSize: 12, color: Color(0xFF757575)),
+                                  textAlign: TextAlign.right),
+                            ),
                             const SizedBox(height: 14),
                             Row(
                               children: [
