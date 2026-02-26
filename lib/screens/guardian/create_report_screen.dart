@@ -500,6 +500,7 @@ class _MapPickerSheet extends StatefulWidget {
 class _MapPickerSheetState extends State<_MapPickerSheet> {
   late LatLng _pickedLocation;
   GoogleMapController? _mapController;
+  bool _loadingLocation = false;
 
   @override
   void initState() {
@@ -578,27 +579,53 @@ class _MapPickerSheetState extends State<_MapPickerSheet> {
                     left: 16,
                     child: GestureDetector(
                       onTap: () async {
+                        setState(() => _loadingLocation = true);
                         try {
                           bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-                          if (!serviceEnabled) return;
+                          if (!serviceEnabled) {
+                            setState(() => _loadingLocation = false);
+                            return;
+                          }
 
                           LocationPermission perm = await Geolocator.checkPermission();
                           if (perm == LocationPermission.denied) {
                             perm = await Geolocator.requestPermission();
                           }
-                          if (perm == LocationPermission.deniedForever) return;
+                          if (perm == LocationPermission.deniedForever) {
+                            setState(() => _loadingLocation = false);
+                            return;
+                          }
 
                           final pos = await Geolocator.getCurrentPosition(
-                            desiredAccuracy: LocationAccuracy.high,
+                            desiredAccuracy: LocationAccuracy.medium,
+                            timeLimit: const Duration(seconds: 10),
                           );
                           final myPos = LatLng(pos.latitude, pos.longitude);
-                          setState(() => _pickedLocation = myPos);
+                          setState(() {
+                            _pickedLocation = myPos;
+                            _loadingLocation = false;
+                          });
                           _mapController?.animateCamera(
                             CameraUpdate.newCameraPosition(
                               CameraPosition(target: myPos, zoom: 16),
                             ),
                           );
-                        } catch (_) {}
+                        } catch (e) {
+                          setState(() => _loadingLocation = false);
+                          // fallback: استخدم getLastKnownPosition
+                          try {
+                            final last = await Geolocator.getLastKnownPosition();
+                            if (last != null) {
+                              final myPos = LatLng(last.latitude, last.longitude);
+                              setState(() => _pickedLocation = myPos);
+                              _mapController?.animateCamera(
+                                CameraUpdate.newCameraPosition(
+                                  CameraPosition(target: myPos, zoom: 16),
+                                ),
+                              );
+                            }
+                          } catch (_) {}
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -613,7 +640,12 @@ class _MapPickerSheetState extends State<_MapPickerSheet> {
                             ),
                           ],
                         ),
-                        child: const Row(
+                        child: _loadingLocation
+                            ? const SizedBox(
+                                width: 20, height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF3D5A6C)),
+                              )
+                            : const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.my_location, color: Color(0xFF3D5A6C), size: 20),
