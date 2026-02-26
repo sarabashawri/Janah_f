@@ -124,7 +124,29 @@ class _VerificationScreenState extends State<VerificationScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // باج قيد المراجعة لوحده على اليسار
+                                // الاسم والتفاصيل على اليسار
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('نقطة اشتباه #${widget.pointNumber}',
+                                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                                    const SizedBox(height: 8),
+                                    Row(mainAxisSize: MainAxisSize.min, children: const [
+                                      Icon(Icons.location_on, size: 14, color: _red),
+                                      SizedBox(width: 4),
+                                      Text('قرب الموقع المحدد - 200 متر شمالاً',
+                                          style: TextStyle(fontSize: 12, color: Color(0xFF757575))),
+                                    ]),
+                                    const SizedBox(height: 4),
+                                    Row(mainAxisSize: MainAxisSize.min, children: const [
+                                      Icon(Icons.access_time, size: 14, color: Color(0xFF9E9E9E)),
+                                      SizedBox(width: 4),
+                                      Text('منذ 15 دقيقة',
+                                          style: TextStyle(fontSize: 12, color: Color(0xFF757575))),
+                                    ]),
+                                  ],
+                                ),
+                                // باج قيد المراجعة على اليمين
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
@@ -133,28 +155,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                   ),
                                   child: const Text('قيد المراجعة',
                                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-                                ),
-                                // الاسم والتفاصيل على اليمين
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text('نقطة اشتباه #${widget.pointNumber}',
-                                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                                    const SizedBox(height: 8),
-                                    Row(mainAxisSize: MainAxisSize.min, children: const [
-                                      Text('قرب الموقع المحدد - 200 متر شمالاً',
-                                          style: TextStyle(fontSize: 12, color: Color(0xFF757575))),
-                                      SizedBox(width: 4),
-                                      Icon(Icons.location_on, size: 14, color: _red),
-                                    ]),
-                                    const SizedBox(height: 4),
-                                    Row(mainAxisSize: MainAxisSize.min, children: const [
-                                      Text('منذ 15 دقيقة',
-                                          style: TextStyle(fontSize: 12, color: Color(0xFF757575))),
-                                      SizedBox(width: 4),
-                                      Icon(Icons.access_time, size: 14, color: Color(0xFF9E9E9E)),
-                                    ]),
-                                  ],
                                 ),
                               ],
                             ),
@@ -265,10 +265,15 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // الأيقونة قبل الكلام في نفس الصف
+                            // الأيقونة على اليسار، الكلام على اليمين
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(color: _green.withOpacity(0.2), shape: BoxShape.circle),
+                                  child: const Icon(Icons.psychology, color: Color(0xFF2E7D32), size: 26),
+                                ),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: const [
@@ -277,12 +282,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                     Text('مطابقة محتملة!',
                                         style: TextStyle(fontSize: 12, color: Color(0xFF388E3C))),
                                   ],
-                                ),
-                                const SizedBox(width: 10),
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(color: _green.withOpacity(0.2), shape: BoxShape.circle),
-                                  child: const Icon(Icons.psychology, color: Color(0xFF2E7D32), size: 26),
                                 ),
                               ],
                             ),
