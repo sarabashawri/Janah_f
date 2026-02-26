@@ -572,6 +572,56 @@ class _MapPickerSheetState extends State<_MapPickerSheet> {
                       child: Icon(Icons.location_pin, color: Color(0xFFEF5350), size: 40),
                     ),
                   ),
+                  // زر موقعي الحالي
+                  Positioned(
+                    bottom: 16,
+                    left: 16,
+                    child: GestureDetector(
+                      onTap: () async {
+                        try {
+                          final pos = await Geolocator.getCurrentPosition(
+                            desiredAccuracy: LocationAccuracy.high,
+                          );
+                          final myPos = LatLng(pos.latitude, pos.longitude);
+                          setState(() => _pickedLocation = myPos);
+                          _mapController?.animateCamera(
+                            CameraUpdate.newCameraPosition(
+                              CameraPosition(target: myPos, zoom: 16),
+                            ),
+                          );
+                        } catch (_) {}
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(25),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.my_location, color: Color(0xFF3D5A6C), size: 20),
+                            SizedBox(width: 6),
+                            Text(
+                              'موقعي الحالي',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF3D5A6C),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
