@@ -117,40 +117,46 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: const Color(0xFFFFEB3B), width: 1.5),
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text('نقطة اشتباه #${widget.pointNumber}',
-                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                                  const SizedBox(height: 8),
-                                  Row(mainAxisAlignment: MainAxisAlignment.end, children: const [
-                                    Text('قرب الموقع المحدد - 200 متر شمالاً',
-                                        style: TextStyle(fontSize: 12, color: Color(0xFF757575))),
-                                    SizedBox(width: 4),
-                                    Icon(Icons.location_on, size: 14, color: _red),
-                                  ]),
-                                  const SizedBox(height: 4),
-                                  Row(mainAxisAlignment: MainAxisAlignment.end, children: const [
-                                    Text('منذ 15 دقيقة',
-                                        style: TextStyle(fontSize: 12, color: Color(0xFF757575))),
-                                    SizedBox(width: 4),
-                                    Icon(Icons.access_time, size: 14, color: Color(0xFF9E9E9E)),
-                                  ]),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFB300),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text('قيد المراجعة',
-                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // باج قيد المراجعة لوحده على اليسار
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFB300),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Text('قيد المراجعة',
+                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                                ),
+                                // الاسم والتفاصيل على اليمين
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text('نقطة اشتباه #${widget.pointNumber}',
+                                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                                    const SizedBox(height: 8),
+                                    Row(mainAxisSize: MainAxisSize.min, children: const [
+                                      Text('قرب الموقع المحدد - 200 متر شمالاً',
+                                          style: TextStyle(fontSize: 12, color: Color(0xFF757575))),
+                                      SizedBox(width: 4),
+                                      Icon(Icons.location_on, size: 14, color: _red),
+                                    ]),
+                                    const SizedBox(height: 4),
+                                    Row(mainAxisSize: MainAxisSize.min, children: const [
+                                      Text('منذ 15 دقيقة',
+                                          style: TextStyle(fontSize: 12, color: Color(0xFF757575))),
+                                      SizedBox(width: 4),
+                                      Icon(Icons.access_time, size: 14, color: Color(0xFF9E9E9E)),
+                                    ]),
+                                  ],
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -259,20 +265,18 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // الأيقونة قبل الكلام على اليمين
+                            // الأيقونة قبل الكلام في نفس الصف
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: const [
-                                      Text('توصية الذكاء الاصطناعي',
-                                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF2E7D32))),
-                                      Text('مطابقة محتملة!',
-                                          style: TextStyle(fontSize: 12, color: Color(0xFF388E3C))),
-                                    ],
-                                  ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: const [
+                                    Text('توصية الذكاء الاصطناعي',
+                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF2E7D32))),
+                                    Text('مطابقة محتملة!',
+                                        style: TextStyle(fontSize: 12, color: Color(0xFF388E3C))),
+                                  ],
                                 ),
                                 const SizedBox(width: 10),
                                 Container(
@@ -368,24 +372,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             const SizedBox(height: 14),
                             Row(
                               children: [
-                                // غير مطابق
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: _handleNoMatch,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 18),
-                                      decoration: BoxDecoration(color: _red, borderRadius: BorderRadius.circular(14)),
-                                      child: Column(children: const [
-                                        Icon(Icons.cancel, color: Colors.white, size: 30),
-                                        SizedBox(height: 6),
-                                        Text('غير مطابق', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
-                                        Text('متابعة البحث', style: TextStyle(fontSize: 11, color: Colors.white70)),
-                                      ]),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                // مطابق
+                                // مطابق — يمين
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: _isSubmitting ? null : _handleMatch,
@@ -397,6 +384,23 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                         SizedBox(height: 6),
                                         Text('مطابق', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
                                         Text('تأكيد العثور', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                                      ]),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                // غير مطابق — يسار
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: _handleNoMatch,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 18),
+                                      decoration: BoxDecoration(color: _red, borderRadius: BorderRadius.circular(14)),
+                                      child: Column(children: const [
+                                        Icon(Icons.cancel, color: Colors.white, size: 30),
+                                        SizedBox(height: 6),
+                                        Text('غير مطابق', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
+                                        Text('متابعة البحث', style: TextStyle(fontSize: 11, color: Colors.white70)),
                                       ]),
                                     ),
                                   ),
