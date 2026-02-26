@@ -579,6 +579,15 @@ class _MapPickerSheetState extends State<_MapPickerSheet> {
                     child: GestureDetector(
                       onTap: () async {
                         try {
+                          bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+                          if (!serviceEnabled) return;
+
+                          LocationPermission perm = await Geolocator.checkPermission();
+                          if (perm == LocationPermission.denied) {
+                            perm = await Geolocator.requestPermission();
+                          }
+                          if (perm == LocationPermission.deniedForever) return;
+
                           final pos = await Geolocator.getCurrentPosition(
                             desiredAccuracy: LocationAccuracy.high,
                           );
