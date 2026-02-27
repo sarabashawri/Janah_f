@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import 'Verification_screen.dart';
 
 // ── بيانات كل طفل (public عشان تستخدمها صفحات ثانية) ──
@@ -233,7 +235,7 @@ class MissionDetailsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _MapPreview(scannedArea: data.scannedArea),
+                          _MapPreview(scannedArea: data.scannedArea, location: const LatLng(24.7136, 46.6753)),
                           const SizedBox(height: 10),
                           Row(
                             children: [
@@ -255,7 +257,7 @@ class MissionDetailsScreen extends StatelessWidget {
                             width: double.infinity,
                             height: 56,
                             child: ElevatedButton.icon(
-                              onPressed: () {},
+                              onPressed: () => _openFullMap(context, data),
                               icon: const Icon(Icons.location_on, color: Colors.white, size: 18),
                               label: const Text(
                                 'عرض الخريطة بملء الشاشة',
@@ -378,6 +380,18 @@ class MissionDetailsScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _openFullMap(BuildContext context, MissionData data) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _FullMapSheet(
+        location: LatLng(24.7136, 46.6753),
+        childName: data.childName,
       ),
     );
   }
@@ -667,8 +681,9 @@ class _PrimaryButton extends StatelessWidget {
 }
 
 class _MapPreview extends StatelessWidget {
-  const _MapPreview({required this.scannedArea});
+  const _MapPreview({required this.scannedArea, this.location = const LatLng(24.7136, 46.6753)});
   final double scannedArea;
+  final LatLng location;
 
   static const Color _navy = Color(0xFF3D5A6C);
 
@@ -676,12 +691,27 @@ class _MapPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
-      child: Container(
+      child: SizedBox(
         height: 170,
-        color: const Color(0xFFCFDAE0),
         child: Stack(
           children: [
-            Center(child: Icon(Icons.map_outlined, size: 60, color: _navy.withOpacity(0.25))),
+            GoogleMap(
+              initialCameraPosition: CameraPosition(target: location, zoom: 15),
+              markers: {
+                Marker(
+                  markerId: const MarkerId('child'),
+                  position: location,
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                ),
+              },
+              zoomControlsEnabled: false,
+              scrollGesturesEnabled: false,
+              rotateGesturesEnabled: false,
+              tiltGesturesEnabled: false,
+              zoomGesturesEnabled: false,
+              myLocationButtonEnabled: false,
+              liteModeEnabled: true,
+            ),
             Positioned(
               top: 10,
               left: 10,
@@ -831,6 +861,122 @@ class _CameraThumb extends StatelessWidget {
                       style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
                     ),
                   ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── شيت الخريطة الكاملة ──
+class _FullMapSheet extends StatefulWidget {
+  final LatLng location;
+  final String childName;
+  const _FullMapSheet({required this.location, required this.childName});
+
+  @override
+  State<_FullMapSheet> createState() => _FullMapSheetState();
+}
+
+class _FullMapSheetState extends State<_FullMapSheet> {
+  GoogleMapController? _mapController;
+  LatLng? _myLocation;
+  bool _loading = false;
+
+  Future<void> _goToMyLocation() async {
+    setState(() => _loading = true);
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) { setState(() => _loading = false); return; }
+      LocationPermission perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) perm = await Geolocator.requestPermission();
+      if (perm == LocationPermission.deniedForever) { setState(() => _loading = false); return; }
+      final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+      final myPos = LatLng(pos.latitude, pos.longitude);
+      setState(() { _myLocation = myPos; _loading = false; });
+      _mapController?.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: myPos, zoom: 16)));
+    } catch (_) {
+      setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final markers = <Marker>{
+      Marker(
+        markerId: const MarkerId('child'),
+        position: widget.location,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        infoWindow: InfoWindow(title: 'آخر موقع - ${widget.childName}'),
+      ),
+      if (_myLocation != null)
+        Marker(
+          markerId: const MarkerId('me'),
+          position: _myLocation!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          infoWindow: const InfoWindow(title: 'موقعي'),
+        ),
+    };
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            // هاندل
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40, height: 4,
+              decoration: BoxDecoration(color: const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2)),
+            ),
+            // هيدر
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('الخريطة الحية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                  IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+                ],
+              ),
+            ),
+            // الخريطة
+            Expanded(
+              child: Stack(
+                children: [
+                  GoogleMap(
+                    initialCameraPosition: CameraPosition(target: widget.location, zoom: 15),
+                    onMapCreated: (c) => _mapController = c,
+                    markers: markers,
+                    myLocationEnabled: false,
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: true,
+                  ),
+
+                ],
+              ),
+            ),
+            // زر إغلاق
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3D5A6C),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('إغلاق', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
                 ),
               ),
             ),
