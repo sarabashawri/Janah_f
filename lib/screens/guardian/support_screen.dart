@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -35,17 +37,34 @@ class _SupportScreenState extends State<SupportScreen> {
   Future<void> _sendMessage() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        setState(() => _isLoading = false);
-        _subjectController.clear();
-        _messageController.clear();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم إرسال رسالتك بنجاح'),
-            backgroundColor: Color(0xFF00D995),
-          ),
-        );
+      try {
+        final user = FirebaseAuth.instance.currentUser;
+        await FirebaseFirestore.instance.collection('support_messages').add({
+          'userId': user?.uid ?? '',
+          'userEmail': user?.email ?? '',
+          'subject': _subjectController.text.trim(),
+          'message': _messageController.text.trim(),
+          'createdAt': FieldValue.serverTimestamp(),
+          'status': 'pending',
+        });
+        if (mounted) {
+          setState(() => _isLoading = false);
+          _subjectController.clear();
+          _messageController.clear();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم إرسال رسالتك بنجاح'),
+              backgroundColor: Color(0xFF00D995),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('خطأ في الإرسال: $e'), backgroundColor: Colors.red),
+          );
+        }
       }
     }
   }
