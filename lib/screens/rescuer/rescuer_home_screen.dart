@@ -93,7 +93,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                     Stack(
                       children: [
                         IconButton(
-                          onPressed: () {},
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RescuerNotificationsScreen())),
                           icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 28),
                         ),
                         Positioned(
