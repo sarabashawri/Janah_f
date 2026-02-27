@@ -37,7 +37,10 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('خطأ: تحقق من البريد وكلمة المرور')),
+            const SnackBar(
+              content: Text('خطأ: تحقق من البريد وكلمة المرور'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } finally {
@@ -130,7 +133,7 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                         const SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
-                          height: 50,
+                          height: 54,
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : _handleLogin,
                             style: ElevatedButton.styleFrom(
@@ -139,7 +142,10 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                             ),
                             child: _isLoading
                                 ? const CircularProgressIndicator(color: Colors.white)
-                                : const Text('دخول', style: TextStyle(fontSize: 18, color: Colors.white)),
+                                : const Text(
+                                    'تسجيل الدخول',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                                  ),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -151,10 +157,7 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                               onPressed: () => Navigator.pushNamed(context, '/guardian/register'),
                               child: const Text(
                                 'سجل الآن',
-                                style: TextStyle(
-                                  color: Color(0xFF3D5A6C),
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: TextStyle(color: Color(0xFF3D5A6C), fontWeight: FontWeight.bold),
                               ),
                             ),
                           ],

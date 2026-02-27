@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/auth_service.dart';
 
 class GuardianRegisterScreen extends StatefulWidget {
@@ -41,6 +42,26 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
+        // تحقق أن رقم الجوال غير مستخدم
+        final phoneQuery = await FirebaseFirestore.instance
+            .collection('users')
+            .where('phone', isEqualTo: _phoneController.text.trim())
+            .limit(1)
+            .get();
+
+        if (phoneQuery.docs.isNotEmpty) {
+          if (mounted) {
+            setState(() => _isLoading = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('رقم الجوال مستخدم بالفعل'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
+
         await _authService.registerGuardian(
           name: _nameController.text.trim(),
           email: _emailController.text.trim(),
