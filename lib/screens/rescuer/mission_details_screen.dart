@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'mission_control_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'Verification_screen.dart';
@@ -355,7 +356,7 @@ class MissionDetailsScreen extends StatelessWidget {
                             ),
                             elevation: 0,
                           ),
-                          onPressed: () => _showCompleteMissionDialog(context),
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MissionControlScreen(reportId: data.reportId))),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: const [
