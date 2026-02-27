@@ -21,26 +21,12 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
       subtitle: 'تم العثور على الطفل بنجاح في حي الروضة',
       time: 'منذ ساعة',
       type: _NotifType.closed,
-      isRead: false,
+      isRead: true,
     ),
     _NotificationItem(
       title: 'تحديث موقع البحث',
       subtitle: 'تم توسيع نطاق البحث للبلاغ #1234',
       time: 'منذ ساعتين',
-      type: _NotifType.location,
-      isRead: false,
-    ),
-    _NotificationItem(
-      title: 'تعيين مهمة جديدة',
-      subtitle: 'تم تعيينك في بلاغ #1235 - حي الملقا',
-      time: 'منذ 3 ساعات',
-      type: _NotifType.newReport,
-      isRead: true,
-    ),
-    _NotificationItem(
-      title: 'تحديث حالة الدرون',
-      subtitle: 'الدرون DR-01 يحتاج إلى شحن - البطارية 15%',
-      time: 'منذ 5 ساعات',
       type: _NotifType.location,
       isRead: true,
     ),
@@ -69,52 +55,49 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
               width: double.infinity,
               color: const Color(0xFF3D5A6C),
               padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 12,
-                bottom: 16,
-                right: 20,
-                left: 20,
+                top: MediaQuery.of(context).padding.top + 8,
+                bottom: 12,
+                right: 8,
+                left: 16,
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // صف 1: يسار فاضي | التنبيهات وسط | سهم يمين
+                  // صف 1: سهم يمين | العنوان وسط | فاضي يسار
                   Row(
                     children: [
-                      // يمين: سهم رجوع
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.arrow_forward, color: Colors.white, size: 22),
+                        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
-                      // وسط: العنوان
                       const Expanded(
                         child: Text(
                           'التنبيهات',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
                         ),
                       ),
-                      // يسار: مساحة موازية لحجم السهم
                       const SizedBox(width: 32),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  // صف 2: تعليم الكل + عدد التنبيهات - يسار
+                  const SizedBox(height: 6),
+                  // صف 2: تعليم الكل + عدد - يسار
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      TextButton(
-                        onPressed: _markAllRead,
-                        style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                      GestureDetector(
+                        onTap: _markAllRead,
                         child: const Text(
                           'تعليم الكل كمقروء',
-                          style: TextStyle(fontSize: 13, color: Colors.white70, fontWeight: FontWeight.w500),
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
                         ),
                       ),
                       if (_unreadCount > 0) ...[
                         const SizedBox(width: 10),
-                        const Icon(Icons.circle, size: 8, color: Color(0xFFEF5350)),
+                        Container(
+                          width: 7, height: 7,
+                          decoration: const BoxDecoration(color: Color(0xFFEF5350), shape: BoxShape.circle),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           '$_unreadCount تنبيهات جديدة',
@@ -129,23 +112,39 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
 
             // ── القائمة ──
             Expanded(
-              child: _notifications.isEmpty
-                  ? const Center(
-                      child: Text('لا توجد تنبيهات', style: TextStyle(color: Colors.grey)),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _notifications.length,
-                      itemBuilder: (context, index) {
-                        return _NotifCard(
-                          item: _notifications[index],
-                          onTap: () {
-                            setState(() => _notifications[index].isRead = true);
-                          },
-                        );
-                      },
-                    ),
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _notifications.length,
+                itemBuilder: (context, index) {
+                  return _NotifCard(
+                    item: _notifications[index],
+                    onTap: () {
+                      setState(() => _notifications[index].isRead = true);
+                    },
+                  );
+                },
+              ),
             ),
+          ],
+        ),
+        // ── بوتم نافيقيشن ──
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: 0,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: const Color(0xFF3D5A6C),
+          unselectedItemColor: const Color(0xFF9E9E9E),
+          onTap: (index) {
+            if (index == 0) Navigator.pop(context); // الرئيسية
+            if (index == 1) Navigator.pop(context); // البلاغات
+            if (index == 2) Navigator.pop(context); // الخريطة
+            if (index == 3) Navigator.pop(context); // الملف
+          },
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'الرئيسية'),
+            BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), activeIcon: Icon(Icons.assignment), label: 'البلاغات'),
+            BottomNavigationBarItem(icon: Icon(Icons.map_outlined), activeIcon: Icon(Icons.map), label: 'الخريطة'),
+            BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'الملف'),
           ],
         ),
       ),
@@ -153,10 +152,8 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
   }
 }
 
-// ── نوع التنبيه ──
 enum _NotifType { newReport, closed, location }
 
-// ── بيانات التنبيه ──
 class _NotificationItem {
   _NotificationItem({
     required this.title,
@@ -170,7 +167,6 @@ class _NotificationItem {
   bool isRead;
 }
 
-// ── كارد التنبيه ──
 class _NotifCard extends StatelessWidget {
   const _NotifCard({required this.item, required this.onTap});
   final _NotificationItem item;
@@ -204,7 +200,8 @@ class _NotifCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -212,13 +209,13 @@ class _NotifCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: item.isRead
               ? null
-              : Border.all(color: const Color(0xFFEF5350).withOpacity(0.2), width: 1),
+              : Border.all(color: const Color(0xFFEF5350).withOpacity(0.3), width: 1),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 3))],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // المحتوى - يمين
+            // المحتوى يمين
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -237,8 +234,8 @@ class _NotifCard extends StatelessWidget {
                         ),
                       Text(item.title,
                           style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: item.isRead ? FontWeight.w600 : FontWeight.w700,
+                            fontSize: 14,
+                            fontWeight: item.isRead ? FontWeight.w600 : FontWeight.w800,
                             color: const Color(0xFF2D2D2D),
                           )),
                     ],
@@ -251,8 +248,7 @@ class _NotifCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text(item.time,
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
+                      Text(item.time, style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
                       const SizedBox(width: 4),
                       const Icon(Icons.access_time, size: 12, color: Color(0xFF9E9E9E)),
                     ],
@@ -261,7 +257,7 @@ class _NotifCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // الأيقونة - يسار
+            // الأيقونة يسار
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(color: _iconBg, shape: BoxShape.circle),
