@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
+import 'dart:convert';
 
 class CreateReportScreen extends StatefulWidget {
   const CreateReportScreen({super.key});
@@ -118,13 +121,55 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
     }
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    if (mounted) {
-      setState(() => _isLoading = false);
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم إرسال البلاغ بنجاح'), backgroundColor: kGreen),
-      );
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception('غير مسجل الدخول');
+
+      // تحويل الصورة إلى base64
+      String? imageBase64;
+      if (_selectedImage != null) {
+        final bytes = await File(_selectedImage!.path).readAsBytes();
+        imageBase64 = base64Encode(bytes);
+      }
+
+      // جلب بيانات ولي الأمر
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final guardianName = userDoc.data()?['name'] ?? '';
+      final guardianPhone = userDoc.data()?['phone'] ?? '';
+
+      // حفظ البلاغ في Firestore
+      await FirebaseFirestore.instance.collection('reports').add({
+        'guardianId': user.uid,
+        'guardianName': guardianName,
+        'guardianPhone': guardianPhone,
+        'childName': _childNameController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'location': _locationController.text.trim(),
+        'latitude': _selectedLocation!.latitude,
+        'longitude': _selectedLocation!.longitude,
+        'disappearanceTime': _selectedDateTime!.toIso8601String(),
+        'imageBase64': imageBase64,
+        'status': 'active',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم إرسال البلاغ بنجاح'), backgroundColor: kGreen),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
