@@ -206,25 +206,23 @@ class MissionDetailsScreen extends StatelessWidget {
                             label: 'رقم الجوال',
                             title: data.guardianPhone,
                           ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton.icon(
+                              onPressed: () {},
+                              icon: const Icon(Icons.phone, color: Colors.white, size: 20),
+                              label: const Text('الاتصال بولي الأمر',
+                                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _navy,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                elevation: 0,
+                              ),
+                            ),
+                          ),
                         ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.phone, color: Colors.white, size: 20),
-                        label: const Text('الاتصال بولي الأمر',
-                            style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _navy,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                          elevation: 0,
-                        ),
                       ),
                     ),
 
@@ -493,25 +491,25 @@ class _StatusCard extends StatelessWidget {
         children: [
           Row(
             children: [
+              const Text('حالة المهمة', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              const Spacer(),
+              const Text(
+                'نشطة',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
+              ),
+              const SizedBox(width: 8),
               Container(
                 width: 8,
                 height: 8,
                 decoration: const BoxDecoration(color: Color(0xFF16C47F), shape: BoxShape.circle),
               ),
-              const SizedBox(width: 8),
-              const Text(
-                'نشطة',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
-              ),
-              const Spacer(),
-              const Text('حالة المهمة', style: TextStyle(color: Colors.white70, fontSize: 12)),
             ],
           ),
           const SizedBox(height: 14),
           Row(
             children: [
-              Expanded(child: _MiniStat(label: 'المدة', value: data.missionDuration)),
-              Expanded(child: _MiniStat(label: 'وقت البدء', value: data.startTime, alignEnd: true)),
+              Expanded(child: _MiniStat(label: 'وقت البدء', value: data.startTime)),
+              Expanded(child: _MiniStat(label: 'المدة', value: data.missionDuration, alignEnd: true)),
             ],
           ),
           const SizedBox(height: 10),
