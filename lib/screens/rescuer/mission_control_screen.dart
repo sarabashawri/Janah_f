@@ -176,16 +176,16 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.circle, color: Colors.white, size: 10),
-                    SizedBox(width: 8),
-                    Text('جارية الآن', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-                  ],
-                ),
                 Text(
                   'المهمة نشطة',
                   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800),
+                ),
+                Row(
+                  children: [
+                    Text('جارية الآن', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                    SizedBox(width: 8),
+                    Icon(Icons.circle, color: Colors.white, size: 10),
+                  ],
                 ),
               ],
             ),
@@ -262,7 +262,22 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                     children: [
                       Expanded(
                         child: SizedBox(
-                          height: 46,
+                          height: 54,
+                          child: ElevatedButton(
+                            onPressed: _sendCommand,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _navy,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            child: const Text('إرسال الأمر', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 54,
                           child: OutlinedButton(
                             onPressed: () => setState(() {
                               _showDroneInput = false;
@@ -272,23 +287,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                               side: const BorderSide(color: Color(0xFFE0E0E0)),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text('إلغاء', style: TextStyle(color: Color(0xFF757575), fontWeight: FontWeight.w600)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: SizedBox(
-                          height: 46,
-                          child: ElevatedButton(
-                            onPressed: _sendCommand,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _navy,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: 0,
-                            ),
-                            child: const Text('إرسال الأمر', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            child: const Text('إلغاء', style: TextStyle(color: Color(0xFF757575), fontWeight: FontWeight.w600, fontSize: 15)),
                           ),
                         ),
                       ),
