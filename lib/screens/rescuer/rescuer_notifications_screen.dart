@@ -62,15 +62,17 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
               ),
               child: Column(
                 children: [
-                  // صف 1: سهم يمين | العنوان وسط | فاضي يسار
+                  // صف 1: تعليم الكل يمين | العنوان وسط | سهم يسار
                   Row(
                     children: [
+                      // سهم رجوع - يسار
                       IconButton(
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
+                      // العنوان وسط
                       const Expanded(
                         child: Text(
                           'التنبيهات',
@@ -78,22 +80,29 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
                         ),
                       ),
-                      const SizedBox(width: 32),
+                      // تعليم الكل - يمين
+                      GestureDetector(
+                        onTap: _markAllRead,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'تعليم الكل كمقروء',
+                            style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  // صف 2: تعليم الكل + عدد - يسار
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: _markAllRead,
-                        child: const Text(
-                          'تعليم الكل كمقروء',
-                          style: TextStyle(fontSize: 12, color: Colors.white70),
-                        ),
-                      ),
-                      if (_unreadCount > 0) ...[
-                        const SizedBox(width: 10),
+                  // صف 2: عدد التنبيهات - يمين
+                  if (_unreadCount > 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
                         Container(
                           width: 7, height: 7,
                           decoration: const BoxDecoration(color: Color(0xFFEF5350), shape: BoxShape.circle),
@@ -104,8 +113,7 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
                           style: const TextStyle(fontSize: 12, color: Colors.white70),
                         ),
                       ],
-                    ],
-                  ),
+                    ),
                 ],
               ),
             ),
@@ -212,58 +220,59 @@ class _NotifCard extends StatelessWidget {
               : Border.all(color: const Color(0xFFEF5350).withOpacity(0.3), width: 1),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 3))],
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // المحتوى يمين
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (!item.isRead)
-                        Container(
-                          width: 8, height: 8,
-                          margin: const EdgeInsets.only(left: 6),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEF5350),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      Text(item.title,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: item.isRead ? FontWeight.w600 : FontWeight.w800,
-                            color: const Color(0xFF2D2D2D),
-                          )),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(item.subtitle,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF757575)),
-                      textAlign: TextAlign.right),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(item.time, style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.access_time, size: 12, color: Color(0xFF9E9E9E)),
-                    ],
-                  ),
-                ],
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // الأيقونة يمين
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: _iconBg, shape: BoxShape.circle),
+                child: Icon(_icon, color: _iconColor, size: 22),
               ),
-            ),
-            const SizedBox(width: 12),
-            // الأيقونة يسار
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: _iconBg, shape: BoxShape.circle),
-              child: Icon(_icon, color: _iconColor, size: 22),
-            ),
-          ],
+              const SizedBox(width: 12),
+              // المحتوى
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(item.title,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: item.isRead ? FontWeight.w600 : FontWeight.w800,
+                              color: const Color(0xFF2D2D2D),
+                            )),
+                        if (!item.isRead) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            width: 8, height: 8,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFEF5350),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(item.subtitle,
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF757575))),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.access_time, size: 12, color: Color(0xFF9E9E9E)),
+                        const SizedBox(width: 4),
+                        Text(item.time, style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
