@@ -212,11 +212,20 @@ class MissionDetailsScreen extends StatelessWidget {
 
                     const SizedBox(height: 14),
 
-                    _PrimaryButton(
-                      text: 'الاتصال بولي الأمر',
-                      icon: Icons.phone,
-                      background: _navy,
-                      onTap: () {},
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton.icon(
+                        onPressed: () {},
+                        icon: const Icon(Icons.phone, color: Colors.white, size: 20),
+                        label: const Text('الاتصال بولي الأمر',
+                            style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _navy,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                          elevation: 0,
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 14),
@@ -434,7 +443,7 @@ class _Header extends StatelessWidget {
               // ✅ (تعديل 1) السهم صار forward في RTL
               IconButton(
                 onPressed: onBack,
-                icon: const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 20),
+                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -751,31 +760,7 @@ class _SuspiciousPointCard extends StatelessWidget {
                       style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
                     ),
                   ),
-                  const SizedBox(height: 8),
 
-                  // ✅ (تعديل 3) عرض والتحقق تحت البادج وعلى اليسار
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: InkWell(
-                      onTap: onTap,
-                      borderRadius: BorderRadius.circular(12),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Text(
-                            'عرض والتحقق',
-                            style: TextStyle(
-                              color: Color(0xFF3D5A6C),
-                              fontWeight: FontWeight.w900,
-                              fontSize: 13,
-                            ),
-                          ),
-                          SizedBox(width: 6),
-                          Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFF3D5A6C)),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ],
@@ -791,6 +776,20 @@ class _SuspiciousPointCard extends StatelessWidget {
                 child: Text(
                   point.location,
                   style: const TextStyle(fontSize: 12, color: Color(0xFF757575)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(12),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('عرض والتحقق',
+                        style: TextStyle(color: Color(0xFF3D5A6C), fontWeight: FontWeight.w900, fontSize: 12)),
+                    SizedBox(width: 4),
+                    Icon(Icons.arrow_forward_ios, size: 12, color: Color(0xFF3D5A6C)),
+                  ],
                 ),
               ),
             ],
