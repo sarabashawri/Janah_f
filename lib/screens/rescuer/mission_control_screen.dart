@@ -285,15 +285,16 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
           // ── هبوط طارئ تحت البادج ──
           SizedBox(
             width: double.infinity,
-            height: 50,
+            height: 60,
             child: ElevatedButton.icon(
               onPressed: _emergencyLanding,
-              icon: const Icon(Icons.emergency_outlined, color: Colors.white, size: 20),
+              icon: const Icon(Icons.emergency_outlined, color: Colors.white, size: 24),
               label: const Text('هبوط طارئ',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white)),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 1)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _red,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
                 elevation: 0,
               ),
             ),
@@ -356,26 +357,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
                 const Divider(height: 1),
-                // خيارات سريعة
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _QuickCmd(label: 'ماذا ترى؟', onTap: () { _droneCommandController.text = 'ماذا ترى الآن؟'; _sendCommand(); }),
-                        const SizedBox(width: 8),
-                        _QuickCmd(label: 'تحرك للأمام', onTap: () { _droneCommandController.text = 'تحرك للأمام'; _sendCommand(); }),
-                        const SizedBox(width: 8),
-                        _QuickCmd(label: 'التق صورة', onTap: () { _droneCommandController.text = 'التق صورة الآن'; _sendCommand(); }),
-                        const SizedBox(width: 8),
-                        _QuickCmd(label: 'عد للقاعدة', onTap: () { _droneCommandController.text = 'عد للقاعدة'; _sendCommand(); }),
-                      ],
-                    ),
-                  ),
-                ),
                 // حقل الإرسال
                 Padding(
                   padding: const EdgeInsets.all(12),
