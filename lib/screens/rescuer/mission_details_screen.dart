@@ -284,63 +284,8 @@ class MissionDetailsScreen extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 14),
 
-                    _SectionCard(
-                      title: 'نقاط الاشتباه',
-                      child: data.points.isEmpty
-                          ? const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 10),
-                              child: Center(
-                                child: Text(
-                                  'لا توجد نقاط اشتباه حتى الآن',
-                                  style: TextStyle(color: Color(0xFF9E9E9E)),
-                                ),
-                              ),
-                            )
-                          : Column(
-                              children: data.points
-                                  .map(
-                                    (p) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 12),
-                                      child: _SuspiciousPointCard(
-                                        point: p,
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => VerificationScreen(
-                                                reportId: data.reportId,
-                                                pointNumber: p.number,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                    ),
 
-                    const SizedBox(height: 14),
-
-                    _SectionCard(
-                      title: 'لقطات من الكاميرا',
-                      child: GridView.count(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        children: const [
-                          _CameraThumb(time: '18:14:40'),
-                          _CameraThumb(time: '18:13:35'),
-                          _CameraThumb(time: '18:16:50'),
-                          _CameraThumb(time: '18:15:45'),
-                        ],
-                      ),
-                    ),
 
                     const SizedBox(height: 14),
 
@@ -356,7 +301,7 @@ class MissionDetailsScreen extends StatelessWidget {
                             ),
                             elevation: 0,
                           ),
-                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MissionControlScreen(reportId: data.reportId))),
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MissionControlScreen(reportId: data.reportId, startActive: true))),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: const [
