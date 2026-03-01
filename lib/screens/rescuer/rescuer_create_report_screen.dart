@@ -473,21 +473,7 @@ class _RescuerCreateReportScreenState extends State<RescuerCreateReportScreen> {
                             ),
                             validator: (v) => (v == null || v.isEmpty) ? 'هذا الحقل مطلوب' : null,
                           ),
-                          const SizedBox(height: 14),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: ElevatedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.phone, color: Colors.white, size: 20),
-                              label: const Text('الاتصال بولي الأمر',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: kPrimary,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                            ),
-                          ),
+
                         ],
                       ),
 
