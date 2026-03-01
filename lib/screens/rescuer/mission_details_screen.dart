@@ -179,24 +179,6 @@ class MissionDetailsScreen extends StatelessWidget {
                             title: data.childName,
                             isBold: true,
                           ),
-                          const SizedBox(height: 10),
-                          _InfoRow(
-                            leadingIcon: Icons.info_outline,
-                            label: 'الوصف',
-                            title: data.childDescription,
-                          ),
-                          const SizedBox(height: 12),
-                          _InfoRow(
-                            leadingIcon: Icons.location_on_outlined,
-                            label: 'آخر موقع',
-                            title: data.lastLocation,
-                          ),
-                          const SizedBox(height: 12),
-                          _InfoRow(
-                            leadingIcon: Icons.access_time,
-                            label: 'وقت الاختفاء',
-                            title: data.disappearTime,
-                          ),
                           const SizedBox(height: 12),
                           _InfoRow(
                             leadingIcon: Icons.checkroom_outlined,
@@ -211,6 +193,12 @@ class MissionDetailsScreen extends StatelessWidget {
                               title: data.extraDescription,
                             ),
                           ],
+                          const SizedBox(height: 12),
+                          _InfoRow(
+                            leadingIcon: Icons.access_time,
+                            label: 'وقت الاختفاء',
+                            title: data.disappearTime,
+                          ),
                         ],
                       ),
                     ),
@@ -261,18 +249,34 @@ class MissionDetailsScreen extends StatelessWidget {
                         children: [
                           _MapPreview(scannedArea: data.scannedArea, location: const LatLng(24.7136, 46.6753)),
                           const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              const Icon(Icons.location_on, size: 14, color: Color(0xFFEF5350)),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  data.lastLocation,
-                                  style: const TextStyle(fontSize: 12, color: Color(0xFF757575)),
-                                  overflow: TextOverflow.ellipsis,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF9F9F9),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFE0E0E0)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.location_on, size: 16, color: Color(0xFFEF5350)),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('آخر موقع للطفل',
+                                          style: TextStyle(fontSize: 10, color: Color(0xFF9E9E9E))),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        data.lastLocation,
+                                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF2D2D2D)),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 10),
 
