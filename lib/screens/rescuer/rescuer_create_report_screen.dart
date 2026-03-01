@@ -27,6 +27,8 @@ class _RescuerCreateReportScreenState extends State<RescuerCreateReportScreen> {
   LatLng? _selectedLocation;
   bool _isLoading = false;
   String? _selectedClothingColor;
+  final _customColorController = TextEditingController();
+  bool _showCustomColor = false;
 
   static const Color kPrimary = Color(0xFF3D5A6C);
   static const Color kGreen  = Color(0xFF00D995);
@@ -44,6 +46,7 @@ class _RescuerCreateReportScreenState extends State<RescuerCreateReportScreen> {
     {'label': 'رمادي',   'color': Color(0xFF9E9E9E), 'border': false},
     {'label': 'وردي',    'color': Color(0xFFE91E63), 'border': false},
     {'label': 'كحلي',    'color': Color(0xFF1A237E), 'border': false},
+    {'label': 'غير ذلك',  'color': Color(0xFFBDBDBD), 'border': false},
   ];
 
   @override
@@ -53,6 +56,7 @@ class _RescuerCreateReportScreenState extends State<RescuerCreateReportScreen> {
     _locationController.dispose();
     _guardianNameController.dispose();
     _guardianPhoneController.dispose();
+    _customColorController.dispose();
     super.dispose();
   }
 
@@ -251,7 +255,11 @@ class _RescuerCreateReportScreenState extends State<RescuerCreateReportScreen> {
                             children: _clothingColors.map((c) {
                               final isSelected = _selectedClothingColor == c['label'];
                               return GestureDetector(
-                                onTap: () => setState(() => _selectedClothingColor = c['label'] as String),
+                                onTap: () => setState(() {
+                                  _selectedClothingColor = c['label'] as String;
+                                  _showCustomColor = c['label'] == 'غير ذلك';
+                                  if (!_showCustomColor) _customColorController.clear();
+                                }),
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -287,7 +295,25 @@ class _RescuerCreateReportScreenState extends State<RescuerCreateReportScreen> {
                               );
                             }).toList(),
                           ),
-                          if (_selectedClothingColor != null) ...[
+                          if (_showCustomColor) ...[
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: _customColorController,
+                              textAlign: TextAlign.right,
+                              decoration: InputDecoration(
+                                hintText: 'اكتب لون الملابس...',
+                                hintTextDirection: TextDirection.rtl,
+                                hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF9E9E9E)),
+                                prefixIcon: const Icon(Icons.color_lens_outlined),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: kPrimary, width: 2)),
+                                filled: true,
+                                fillColor: const Color(0xFFF9F9F9),
+                              ),
+                            ),
+                          ],
+                          if (_selectedClothingColor != null && !_showCustomColor) ...[
                             const SizedBox(height: 8),
                             Row(children: [
                               const Icon(Icons.check_circle, color: kGreen, size: 16),
@@ -316,7 +342,7 @@ class _RescuerCreateReportScreenState extends State<RescuerCreateReportScreen> {
                             maxLines: 4,
                             textAlign: TextAlign.right,
                             decoration: InputDecoration(
-                              hintText: 'مثال: يرتدي قبعة زرقاء، كان يلعب عند مدخل الحديقة، معه حقيبة صغيرة...',
+                              hintText: 'مثال: عمره 7 سنوات تقريباً، يرتدي قبعة زرقاء، كان يلعب عند مدخل الحديقة، معه حقيبة صغيرة...',
                               hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
                               hintTextDirection: TextDirection.rtl,
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
