@@ -55,9 +55,8 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
       final Map<String, String> replies = {
         'ماذا ترى؟': '👁️ أرى منطقة مفتوحة، لا يوجد أشخاص في النطاق المباشر حالياً.',
         'تحرك للأمام': '✅ جارٍ التحرك للأمام 50 متراً.',
-        'ارفع الارتفاع': '✅ رفع الارتفاع إلى 30 متر.',
+        'التق صورة الآن': '📸 تم التقاط صورة وإرسالها.',
         'عد للقاعدة': '🔄 جارٍ العودة إلى نقطة الانطلاق.',
-        'وسّع نطاق البحث': '✅ توسيع نطاق البحث إلى 500 متر.',
       };
       setState(() {
         _chatMessages.add(_ChatMessage(
@@ -283,25 +282,6 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
 
           const SizedBox(height: 12),
 
-          // ── هبوط طارئ ──
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton.icon(
-              onPressed: _emergencyLanding,
-              icon: const Icon(Icons.emergency_outlined, color: Colors.white, size: 20),
-              label: const Text('هبوط طارئ',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _red,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
           // ── هبوط طارئ تحت البادج ──
           SizedBox(
             width: double.infinity,
@@ -371,7 +351,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                     children: [
                       _QuickChip(label: 'ماذا ترى؟', onTap: () => _sendQuick('ماذا ترى؟')),
                       _QuickChip(label: 'تحرك للأمام', onTap: () => _sendQuick('تحرك للأمام')),
-                      _QuickChip(label: 'ارفع الارتفاع', onTap: () => _sendQuick('ارفع الارتفاع')),
+                      _QuickChip(label: , onTap: () => _sendQuick()),
                       _QuickChip(label: 'عد للقاعدة', onTap: () => _sendQuick('عد للقاعدة')),
                       _QuickChip(label: 'وسّع نطاق البحث', onTap: () => _sendQuick('وسّع نطاق البحث')),
                     ],
@@ -389,7 +369,6 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                         _QuickCmd(label: 'ماذا ترى؟', onTap: () { _droneCommandController.text = 'ماذا ترى الآن؟'; _sendCommand(); }),
                         const SizedBox(width: 8),
                         _QuickCmd(label: 'تحرك للأمام', onTap: () { _droneCommandController.text = 'تحرك للأمام'; _sendCommand(); }),
-
                         const SizedBox(width: 8),
                         _QuickCmd(label: 'التق صورة', onTap: () { _droneCommandController.text = 'التق صورة الآن'; _sendCommand(); }),
                         const SizedBox(width: 8),
