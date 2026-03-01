@@ -351,9 +351,8 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                     children: [
                       _QuickChip(label: 'ماذا ترى؟', onTap: () => _sendQuick('ماذا ترى؟')),
                       _QuickChip(label: 'تحرك للأمام', onTap: () => _sendQuick('تحرك للأمام')),
-                      _QuickChip(label: , onTap: () => _sendQuick()),
+                      _QuickChip(label: 'التق صورة', onTap: () => _sendQuick('التق صورة')),
                       _QuickChip(label: 'عد للقاعدة', onTap: () => _sendQuick('عد للقاعدة')),
-                      _QuickChip(label: 'وسّع نطاق البحث', onTap: () => _sendQuick('وسّع نطاق البحث')),
                     ],
                   ),
                 ),
