@@ -28,7 +28,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
     super.initState();
     _missionStarted = widget.startActive;
     if (_missionStarted) {
-      _chatMessages.add(_ChatMessage(text: '🤖 الدرون جاهز واستقبل أمر البدء، يبدأ المسح الآن...', isBot: true));
+      _chatMessages.add(_ChatMessage(text: '🚁 مرحباً، أنا جناح. تم تفعيل نظام البحث والإنقاذ. جاهز لاستقبال أوامرك، كيف يمكنني المساعدة؟', isBot: true));
     }
   }
 
@@ -42,7 +42,38 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
   void _startMission() {
     setState(() {
       _missionStarted = true;
-      _chatMessages.add(_ChatMessage(text: '🤖 الدرون جاهز واستقبل أمر البدء، يبدأ المسح الآن...', isBot: true));
+      _chatMessages.add(_ChatMessage(text: '🚁 مرحباً، أنا جناح. تم تفعيل نظام البحث والإنقاذ. جاهز لاستقبال أوامرك، كيف يمكنني المساعدة؟', isBot: true));
+    });
+  }
+
+  void _sendQuick(String text) {
+    setState(() {
+      _chatMessages.add(_ChatMessage(text: text, isBot: false));
+    });
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      final Map<String, String> replies = {
+        'ماذا ترى؟': '👁️ أرى منطقة مفتوحة، لا يوجد أشخاص في النطاق المباشر حالياً.',
+        'تحرك للأمام': '✅ جارٍ التحرك للأمام 50 متراً.',
+        'ارفع الارتفاع': '✅ رفع الارتفاع إلى 30 متر.',
+        'عد للقاعدة': '🔄 جارٍ العودة إلى نقطة الانطلاق.',
+        'وسّع نطاق البحث': '✅ توسيع نطاق البحث إلى 500 متر.',
+      };
+      setState(() {
+        _chatMessages.add(_ChatMessage(
+          text: replies[text] ?? '✅ تم تنفيذ الأمر.',
+          isBot: true,
+        ));
+      });
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_chatScrollController.hasClients) {
+          _chatScrollController.animateTo(
+            _chatScrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
     });
   }
 
@@ -250,6 +281,44 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
             ),
           ),
 
+          const SizedBox(height: 12),
+
+          // ── هبوط طارئ ──
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              onPressed: _emergencyLanding,
+              icon: const Icon(Icons.emergency_outlined, color: Colors.white, size: 20),
+              label: const Text('هبوط طارئ',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _red,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                elevation: 0,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // ── هبوط طارئ تحت البادج ──
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: _emergencyLanding,
+              icon: const Icon(Icons.emergency_outlined, color: Colors.white, size: 20),
+              label: const Text('هبوط طارئ',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _red,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                elevation: 0,
+              ),
+            ),
+          ),
+
           const SizedBox(height: 16),
 
           // ── شات مع الدرون ──
@@ -273,7 +342,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                     ),
                     const SizedBox(width: 10),
                     const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('شات مع الدرون', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                      Text('جناح - نظام البحث والإنقاذ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                       Text('DR-01 • متصل', style: TextStyle(fontSize: 11, color: Color(0xFF00D995))),
                     ]),
                   ]),
@@ -293,6 +362,42 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                         ),
                 ),
                 const Divider(height: 1),
+                // خيارات سريعة
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    children: [
+                      _QuickChip(label: 'ماذا ترى؟', onTap: () => _sendQuick('ماذا ترى؟')),
+                      _QuickChip(label: 'تحرك للأمام', onTap: () => _sendQuick('تحرك للأمام')),
+                      _QuickChip(label: 'ارفع الارتفاع', onTap: () => _sendQuick('ارفع الارتفاع')),
+                      _QuickChip(label: 'عد للقاعدة', onTap: () => _sendQuick('عد للقاعدة')),
+                      _QuickChip(label: 'وسّع نطاق البحث', onTap: () => _sendQuick('وسّع نطاق البحث')),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Divider(height: 1),
+                // خيارات سريعة
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _QuickCmd(label: 'ماذا ترى؟', onTap: () { _droneCommandController.text = 'ماذا ترى الآن؟'; _sendCommand(); }),
+                        const SizedBox(width: 8),
+                        _QuickCmd(label: 'تحرك للأمام', onTap: () { _droneCommandController.text = 'تحرك للأمام'; _sendCommand(); }),
+
+                        const SizedBox(width: 8),
+                        _QuickCmd(label: 'التق صورة', onTap: () { _droneCommandController.text = 'التق صورة الآن'; _sendCommand(); }),
+                        const SizedBox(width: 8),
+                        _QuickCmd(label: 'عد للقاعدة', onTap: () { _droneCommandController.text = 'عد للقاعدة'; _sendCommand(); }),
+                      ],
+                    ),
+                  ),
+                ),
                 // حقل الإرسال
                 Padding(
                   padding: const EdgeInsets.all(12),
@@ -332,7 +437,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
 
           const SizedBox(height: 16),
 
-          // ── لقطات من الكاميرا ──
+          // ── بث مباشر من الدرون ──
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -344,23 +449,45 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Row(children: [
-                  Icon(Icons.videocam_outlined, color: _navy, size: 18),
+                  Icon(Icons.videocam, color: _navy, size: 18),
                   SizedBox(width: 8),
-                  Text('لقطات من الكاميرا', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  Text('بث مباشر من الدرون', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  Spacer(),
+                  _LiveBadge(),
                 ]),
-                const SizedBox(height: 14),
-                GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: const [
-                    _CameraThumb(time: '18:14:40'),
-                    _CameraThumb(time: '18:13:35'),
-                    _CameraThumb(time: '18:16:50'),
-                    _CameraThumb(time: '18:15:45'),
-                  ],
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    width: double.infinity,
+                    height: 200,
+                    color: const Color(0xFF1A1A2E),
+                    child: Stack(children: [
+                      Center(child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.videocam, color: Colors.white.withOpacity(0.3), size: 48),
+                          const SizedBox(height: 8),
+                          Text('DR-01 • جاري البث',
+                              style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 13)),
+                        ],
+                      )),
+                      Positioned(top: 10, right: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: _red, borderRadius: BorderRadius.circular(6)),
+                          child: const Text('LIVE', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                        ),
+                      ),
+                      Positioned(bottom: 10, left: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(8)),
+                          child: const Text('18:14:40', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                    ]),
+                  ),
                 ),
               ],
             ),
@@ -403,25 +530,6 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                         )).toList(),
                       ),
               ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // ── هبوط طارئ ──
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton.icon(
-              onPressed: _emergencyLanding,
-              icon: const Icon(Icons.emergency_outlined, color: Colors.white, size: 22),
-              label: const Text('هبوط طارئ',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _red,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                elevation: 0,
-              ),
             ),
           ),
 
@@ -585,6 +693,72 @@ class _SuspiciousPointCard extends StatelessWidget {
             ),
           ]),
         ],
+      ),
+    );
+  }
+}
+
+class _QuickChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _QuickChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF3D5A6C).withOpacity(0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFF3D5A6C).withOpacity(0.25)),
+        ),
+        child: Text(label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF3D5A6C))),
+      ),
+    );
+  }
+}
+
+class _LiveBadge extends StatelessWidget {
+  const _LiveBadge();
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: const Color(0xFFEF5350), borderRadius: BorderRadius.circular(6)),
+      child: const Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.circle, color: Colors.white, size: 6),
+        SizedBox(width: 4),
+        Text('LIVE', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+      ]),
+    );
+  }
+}
+
+class _QuickCmd extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _QuickCmd({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: const Color(0xFF3D5A6C).withOpacity(0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFF3D5A6C).withOpacity(0.2)),
+        ),
+        child: Text(label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF3D5A6C),
+            )),
       ),
     );
   }
