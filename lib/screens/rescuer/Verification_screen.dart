@@ -269,19 +269,19 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(color: _green.withOpacity(0.2), shape: BoxShape.circle),
-                                  child: const Icon(Icons.psychology, color: Color(0xFF2E7D32), size: 26),
-                                ),
                                 Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: const [
                                     Text('توصية الذكاء الاصطناعي',
                                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF2E7D32))),
                                     Text('مطابقة محتملة!',
                                         style: TextStyle(fontSize: 12, color: Color(0xFF388E3C))),
                                   ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(color: _green.withOpacity(0.2), shape: BoxShape.circle),
+                                  child: const Icon(Icons.psychology, color: Color(0xFF2E7D32), size: 26),
                                 ),
                               ],
                             ),
