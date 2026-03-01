@@ -18,6 +18,8 @@ class MissionData {
   final int suspiciousPoints;
   final double scannedArea;
   final List<SuspiciousPoint> points;
+  final String clothingColor;
+  final String extraDescription;
 
   const MissionData({
     required this.reportId,
@@ -32,6 +34,8 @@ class MissionData {
     required this.suspiciousPoints,
     required this.scannedArea,
     required this.points,
+    this.clothingColor = 'أزرق',
+    this.extraDescription = '',
   });
 }
 
@@ -63,6 +67,8 @@ final missionsMap = <String, MissionData>{
     startTime: '15:00',
     suspiciousPoints: 2,
     scannedArea: 40,
+    clothingColor: 'أزرق',
+    extraDescription: 'يرتدي قبعة بيضاء، شعره قصير',
     points: [
       SuspiciousPoint(
         number: 2,
@@ -90,6 +96,8 @@ final missionsMap = <String, MissionData>{
     startTime: '14:30',
     suspiciousPoints: 1,
     scannedArea: 15,
+    clothingColor: 'وردي',
+    extraDescription: '',
     points: [
       SuspiciousPoint(
         number: 1,
@@ -111,6 +119,8 @@ final missionsMap = <String, MissionData>{
     startTime: '12:00',
     suspiciousPoints: 0,
     scannedArea: 60,
+    clothingColor: 'أحمر',
+    extraDescription: '',
     points: const [],
   ),
   '#1232': MissionData(
@@ -125,6 +135,8 @@ final missionsMap = <String, MissionData>{
     startTime: '18:00',
     suspiciousPoints: 0,
     scannedArea: 80,
+    clothingColor: 'أسود',
+    extraDescription: '',
     points: const [],
   ),
 };
@@ -158,9 +170,6 @@ class MissionDetailsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _StatusCard(data: data),
-                    const SizedBox(height: 14),
-
                     _SectionCard(
                       title: 'بيانات الطفل',
                       child: Column(
@@ -188,6 +197,20 @@ class MissionDetailsScreen extends StatelessWidget {
                             label: 'وقت الاختفاء',
                             title: data.disappearTime,
                           ),
+                          const SizedBox(height: 12),
+                          _InfoRow(
+                            leadingIcon: Icons.checkroom_outlined,
+                            label: 'لون الملابس العلوية',
+                            title: data.clothingColor,
+                          ),
+                          if (data.extraDescription.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            _InfoRow(
+                              leadingIcon: Icons.description_outlined,
+                              label: 'وصف إضافي',
+                              title: data.extraDescription,
+                            ),
+                          ],
                         ],
                       ),
                     ),
