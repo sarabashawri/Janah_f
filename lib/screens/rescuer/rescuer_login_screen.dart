@@ -240,38 +240,7 @@ class _RescuerLoginScreenState extends State<RescuerLoginScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 20),
 
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'ليس لديك حساب؟ ',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF757575),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  // سجل دخول
-                                },
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const Text(
-                                  'سجل دخول',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF3D5A6C),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                     ),
