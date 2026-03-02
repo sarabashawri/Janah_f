@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'missions_list_screen.dart';
 import 'rescuer_profile_screen.dart';
+import 'rescuer_notifications_screen.dart';
+import 'rescuer_create_report_screen.dart';
+import 'rescuer_map_screen.dart';
 
 class RescuerHomeScreen extends StatefulWidget {
   const RescuerHomeScreen({super.key});
@@ -93,7 +96,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                     Stack(
                       children: [
                         IconButton(
-                          onPressed: () {},
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RescuerNotificationsScreen())),
                           icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 28),
                         ),
                         Positioned(
@@ -290,7 +293,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: () {},
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RescuerMapScreen())),
                         icon: const Icon(Icons.location_on, size: 18, color: Colors.white),
                         label: const Text('عرض الخريطة الكاملة', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
                         style: ElevatedButton.styleFrom(
