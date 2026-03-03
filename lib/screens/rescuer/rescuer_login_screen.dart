@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'rescuer_forgot_password_screen.dart';
 
 class RescuerLoginScreen extends StatefulWidget {
   const RescuerLoginScreen({super.key});
@@ -42,7 +43,6 @@ class _RescuerLoginScreenState extends State<RescuerLoginScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // Header
                 Container(
                   width: double.infinity,
                   height: 80,
@@ -56,34 +56,20 @@ class _RescuerLoginScreenState extends State<RescuerLoginScreen> {
                   child: Stack(
                     children: [
                       Positioned(
-                        right: 16,
-                        top: 20,
+                        right: 16, top: 20,
                         child: IconButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                            size: 28,
-                          ),
+                          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
                         ),
                       ),
                       const Center(
-                        child: Text(
-                          'تسجيل الدخول',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child: Text('تسجيل الدخول',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 40),
-
-                // Form
                 Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Container(
@@ -91,26 +77,14 @@ class _RescuerLoginScreenState extends State<RescuerLoginScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
                     ),
                     child: Form(
                       key: _formKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'رقم الهاتف / البريد',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          const Text('رقم الهاتف / البريد', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _emailController,
@@ -122,38 +96,15 @@ class _RescuerLoginScreenState extends State<RescuerLoginScreen> {
                               hintTextDirection: TextDirection.rtl,
                               hintStyle: const TextStyle(fontSize: 13),
                               prefixIcon: const Icon(Icons.phone_outlined),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFF9F9F9),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2)),
+                              filled: true, fillColor: const Color(0xFFF9F9F9),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'هذا الحقل مطلوب';
-                              }
-                              return null;
-                            },
+                            validator: (v) => (v == null || v.isEmpty) ? 'هذا الحقل مطلوب' : null,
                           ),
-
                           const SizedBox(height: 20),
-
-                          const Text(
-                            'كلمة المرور',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          const Text('كلمة المرور', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _passwordController,
@@ -166,81 +117,43 @@ class _RescuerLoginScreenState extends State<RescuerLoginScreen> {
                               hintStyle: const TextStyle(fontSize: 13),
                               prefixIcon: const Icon(Icons.lock_outline),
                               suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                ),
-                                onPressed: () {
-                                  setState(() => _obscurePassword = !_obscurePassword);
-                                },
+                                icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                               ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFF9F9F9),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2)),
+                              filled: true, fillColor: const Color(0xFFF9F9F9),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'هذا الحقل مطلوب';
-                              }
-                              return null;
-                            },
+                            validator: (v) => (v == null || v.isEmpty) ? 'هذا الحقل مطلوب' : null,
                           ),
-
                           const SizedBox(height: 12),
-
                           Align(
                             alignment: Alignment.centerLeft,
                             child: TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pushNamed('/rescuer/forgot-password');
-                              },
-                              child: const Text(
-                                'نسيت كلمة المرور؟',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Color(0xFF3D5A6C),
-                                ),
+                              onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const RescuerForgotPasswordScreen()),
                               ),
+                              child: const Text('نسيت كلمة المرور؟',
+                                  style: TextStyle(fontSize: 13, color: Color(0xFF3D5A6C))),
                             ),
                           ),
-
                           const SizedBox(height: 24),
-
                           SizedBox(
-                            width: double.infinity,
-                            height: 56,
+                            width: double.infinity, height: 56,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF3D5A6C),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                               child: _isLoading
                                   ? const CircularProgressIndicator(color: Colors.white)
-                                  : const Text(
-                                      'تسجيل الدخول',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                      ),
-                                    ),
+                                  : const Text('تسجيل الدخول',
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
                             ),
                           ),
-
-
                         ],
                       ),
                     ),
