@@ -3,7 +3,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'mission_details_screen.dart';
-import 'rescuer_home_screen.dart';
 
 class RescuerMapScreen extends StatefulWidget {
   const RescuerMapScreen({super.key});
@@ -99,27 +98,6 @@ class _RescuerMapScreenState extends State<RescuerMapScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xFFF4EFEB),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: 2,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF3D5A6C),
-          unselectedItemColor: const Color(0xFF9E9E9E),
-          onTap: (index) {
-            if (index == 2) return;
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => RescuerHomeScreen(initialIndex: index)),
-              (route) => false,
-            );
-          },
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'الرئيسية'),
-            BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), activeIcon: Icon(Icons.assignment), label: 'البلاغات'),
-            BottomNavigationBarItem(icon: Icon(Icons.map_outlined), activeIcon: Icon(Icons.map), label: 'الخريطة'),
-            BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'الملف'),
-          ],
-        ),
         body: SafeArea(
           child: Column(
             children: [
