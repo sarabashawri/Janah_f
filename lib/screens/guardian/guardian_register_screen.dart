@@ -42,7 +42,6 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
-        // تحقق أن رقم الجوال غير مستخدم
         final phoneQuery = await FirebaseFirestore.instance
             .collection('users')
             .where('phone', isEqualTo: _phoneController.text.trim())
@@ -53,10 +52,7 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
           if (mounted) {
             setState(() => _isLoading = false);
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('رقم الجوال مستخدم بالفعل'),
-                backgroundColor: Colors.red,
-              ),
+              const SnackBar(content: Text('رقم الجوال مستخدم بالفعل'), backgroundColor: Colors.red),
             );
           }
           return;
@@ -68,13 +64,11 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
           phone: _phoneController.text.trim(),
           password: _passwordController.text,
         );
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/guardian/home');
-        }
+        if (mounted) Navigator.of(context).pushReplacementNamed('/guardian/home');
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('خطأ في التسجيل: تحقق من البيانات')),
+            const SnackBar(content: Text('خطأ في التسجيل: تحقق من البيانات')),
           );
         }
       } finally {
@@ -93,6 +87,7 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                // ── HEADER ──
                 Container(
                   width: double.infinity,
                   height: 80,
@@ -106,124 +101,169 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
                   child: Stack(
                     children: [
                       Positioned(
-                        right: 16,
-                        top: 20,
+                        right: 16, top: 20,
                         child: IconButton(
                           onPressed: () => Navigator.of(context).pop(),
                           icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
                         ),
                       ),
                       const Center(
-                        child: Text(
-                          'انشاء حساب',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
-                        ),
+                        child: Text('إنشاء حساب',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
                       ),
                     ],
                   ),
                 ),
+
+                const SizedBox(height: 28),
+
+                // ── CARD ──
                 Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            labelText: 'الاسم الكامل',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            filled: true,
-                            fillColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('الاسم الكامل', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                              hintText: 'أدخل اسمك الكامل',
+                              hintStyle: const TextStyle(fontSize: 13),
+                              prefixIcon: const Icon(Icons.person_outline),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2)),
+                              filled: true, fillColor: const Color(0xFFF9F9F9),
+                            ),
+                            validator: (v) => v!.isEmpty ? 'ادخل اسمك' : null,
                           ),
-                          validator: (v) => v!.isEmpty ? 'ادخل اسمك' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            labelText: 'البريد الالكتروني',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            filled: true,
-                            fillColor: Colors.white,
+                          const SizedBox(height: 16),
+
+                          const Text('البريد الإلكتروني', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              hintText: 'أدخل البريد الإلكتروني',
+                              hintStyle: const TextStyle(fontSize: 13),
+                              prefixIcon: const Icon(Icons.email_outlined),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2)),
+                              filled: true, fillColor: const Color(0xFFF9F9F9),
+                            ),
+                            validator: (v) => v!.isEmpty ? 'ادخل البريد الالكتروني' : null,
                           ),
-                          validator: (v) => v!.isEmpty ? 'ادخل البريد الالكتروني' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          decoration: InputDecoration(
-                            labelText: 'رقم الجوال',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            filled: true,
-                            fillColor: Colors.white,
+                          const SizedBox(height: 16),
+
+                          const Text('رقم الجوال', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration(
+                              hintText: 'أدخل رقم الجوال',
+                              hintStyle: const TextStyle(fontSize: 13),
+                              prefixIcon: const Icon(Icons.phone_outlined),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2)),
+                              filled: true, fillColor: const Color(0xFFF9F9F9),
+                            ),
+                            validator: (v) => v!.isEmpty ? 'ادخل رقم الجوال' : null,
                           ),
-                          validator: (v) => v!.isEmpty ? 'ادخل رقم الجوال' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          decoration: InputDecoration(
-                            labelText: 'كلمة المرور',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            filled: true,
-                            fillColor: Colors.white,
-                            suffixIcon: IconButton(
-                              icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
-                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          const SizedBox(height: 16),
+
+                          const Text('كلمة المرور', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              hintText: 'أدخل كلمة المرور',
+                              hintStyle: const TextStyle(fontSize: 13),
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              ),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2)),
+                              filled: true, fillColor: const Color(0xFFF9F9F9),
+                            ),
+                            validator: (v) => v!.length < 6 ? 'كلمة المرور قصيرة' : null,
+                          ),
+                          const SizedBox(height: 16),
+
+                          const Text('تأكيد كلمة المرور', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 8),
+                          TextFormField(
+                            controller: _confirmPasswordController,
+                            obscureText: _obscureConfirmPassword,
+                            decoration: InputDecoration(
+                              hintText: 'أعد إدخال كلمة المرور',
+                              hintStyle: const TextStyle(fontSize: 13),
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(_obscureConfirmPassword ? Icons.visibility_off : Icons.visibility),
+                                onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                              ),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2)),
+                              filled: true, fillColor: const Color(0xFFF9F9F9),
+                            ),
+                            validator: (v) => v != _passwordController.text ? 'كلمة المرور غير متطابقة' : null,
+                          ),
+                          const SizedBox(height: 12),
+
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: _agreeToTerms,
+                                activeColor: const Color(0xFF3D5A6C),
+                                onChanged: (v) => setState(() => _agreeToTerms = v!),
+                              ),
+                              const Text('أوافق على الشروط والأحكام',
+                                  style: TextStyle(fontSize: 13, color: Color(0xFF757575))),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _handleRegister,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF3D5A6C),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                  : const Text('إنشاء حساب',
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
                             ),
                           ),
-                          validator: (v) => v!.length < 6 ? 'كلمة المرور قصيرة' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _confirmPasswordController,
-                          obscureText: _obscureConfirmPassword,
-                          decoration: InputDecoration(
-                            labelText: 'تاكيد كلمة المرور',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            filled: true,
-                            fillColor: Colors.white,
-                            suffixIcon: IconButton(
-                              icon: Icon(_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                              onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-                            ),
-                          ),
-                          validator: (v) => v != _passwordController.text ? 'كلمة المرور غير متطابقة' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: _agreeToTerms,
-                              onChanged: (v) => setState(() => _agreeToTerms = v!),
-                            ),
-                            const Text('اوافق على الشروط والاحكام'),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleRegister,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF3D5A6C),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
-                                : const Text('تسجيل', style: TextStyle(fontSize: 18, color: Colors.white)),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 28),
               ],
             ),
           ),
