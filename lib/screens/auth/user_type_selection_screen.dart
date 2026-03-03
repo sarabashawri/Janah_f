@@ -244,7 +244,7 @@ class _UserTypeCard extends StatelessWidget {
               ),
             ),
 
-            const Icon(Icons.chevron_left,
+            const Icon(Icons.chevron_right,
                 color: _primary, size: 30),
           ],
         ),
@@ -296,7 +296,7 @@ class _BottomAction extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(Icons.chevron_left, color: _primary),
+            const Icon(Icons.chevron_right, color: _primary),
           ],
         ),
       ),
