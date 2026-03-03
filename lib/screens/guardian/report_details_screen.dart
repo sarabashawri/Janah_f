@@ -6,13 +6,8 @@ class ReportDetailsScreen extends StatelessWidget {
 
   String _timeAgo(dynamic timestamp) {
     if (timestamp == null) return '';
-    DateTime date;
-    if (timestamp is Timestamp) {
-      date = timestamp.toDate();
-    } else {
-      return '';
-    }
-    final diff = DateTime.now().difference(date);
+    if (timestamp is! Timestamp) return '';
+    final diff = DateTime.now().difference(timestamp.toDate());
     if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
     if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
     return 'منذ ${diff.inDays} يوم';
@@ -43,18 +38,15 @@ class ReportDetailsScreen extends StatelessWidget {
                 child: Stack(
                   children: [
                     Positioned(
-                      right: 16,
-                      top: 20,
+                      right: 16, top: 20,
                       child: IconButton(
                         onPressed: () => Navigator.of(context).pop(),
                         icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
                       ),
                     ),
                     const Center(
-                      child: Text(
-                        'متابعة حالة البلاغ',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
-                      ),
+                      child: Text('متابعة حالة البلاغ',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
                     ),
                   ],
                 ),
@@ -91,7 +83,8 @@ class ReportDetailsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Status Card
+
+                          // ── Status Card ──
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
@@ -99,34 +92,31 @@ class ReportDetailsScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(_timeAgo(data['createdAt']),
-                                        style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                      decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(20)),
-                                      child: Text(statusText,
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
-                                    ),
+                                    const Text('تفاصيل البلاغ',
+                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                                    const SizedBox(height: 4),
+                                    Text('تم الإنشاء ${_timeAgo(data['createdAt'])}',
+                                        style: const TextStyle(fontSize: 13, color: Color(0xFF757575))),
                                   ],
                                 ),
-                                const SizedBox(height: 16),
-                                const Text('تفاصيل البلاغ',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                                const SizedBox(height: 4),
-                                Text('تم الإنشاء ${_timeAgo(data['createdAt'])}',
-                                    style: const TextStyle(fontSize: 13, color: Color(0xFF757575))),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(20)),
+                                  child: Text(statusText,
+                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
+                                ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 20),
 
-                          // Child Info Card
+                          // ── بيانات الطفل ──
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
@@ -142,8 +132,12 @@ class ReportDetailsScreen extends StatelessWidget {
                                 const SizedBox(height: 16),
                                 _buildInfoRow(icon: Icons.person, label: 'اسم الطفل', value: data['childName'] ?? ''),
                                 const SizedBox(height: 12),
-                                _buildInfoRow(icon: Icons.description, label: 'الوصف', value: data['description'] ?? ''),
+                                _buildInfoRow(icon: Icons.checkroom_outlined, label: 'لون الملابس العلوية', value: data['clothingColor'] ?? ''),
                                 const SizedBox(height: 12),
+                                if ((data['description'] ?? '').toString().isNotEmpty) ...[
+                                  _buildInfoRow(icon: Icons.description_outlined, label: 'وصف إضافي', value: data['description'] ?? ''),
+                                  const SizedBox(height: 12),
+                                ],
                                 _buildInfoRow(icon: Icons.location_on, label: 'آخر موقع', value: data['location'] ?? ''),
                                 const SizedBox(height: 12),
                                 _buildInfoRow(
@@ -157,29 +151,7 @@ class ReportDetailsScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 20),
 
-                          // Guardian Info Card
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 5))],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('بيانات ولي الأمر',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                                const SizedBox(height: 16),
-                                _buildInfoRow(icon: Icons.person_outline, label: 'الاسم', value: data['guardianName'] ?? ''),
-                                const SizedBox(height: 12),
-                                _buildInfoRow(icon: Icons.phone, label: 'رقم الجوال', value: data['guardianPhone'] ?? '', isLast: true),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Timeline
+                          // ── تحديثات البحث ──
                           const Text('تحديثات البحث',
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 16),
