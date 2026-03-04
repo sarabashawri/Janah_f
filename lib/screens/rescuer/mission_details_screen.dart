@@ -1,410 +1,306 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'mission_control_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'Verification_screen.dart';
 
-// ── بيانات كل طفل (public عشان تستخدمها صفحات ثانية) ──
-class MissionData {
-  final String reportId;
-  final String childName;
-  final String childDescription;
-  final String lastLocation;
-  final String disappearTime;
-  final String guardianName;
-  final String guardianPhone;
-  final String missionDuration;
-  final String startTime;
-  final int suspiciousPoints;
-  final double scannedArea;
-  final List<SuspiciousPoint> points;
-  final String clothingColor;
-  final String extraDescription;
-
-  const MissionData({
-    required this.reportId,
-    required this.childName,
-    required this.childDescription,
-    required this.lastLocation,
-    required this.disappearTime,
-    required this.guardianName,
-    required this.guardianPhone,
-    required this.missionDuration,
-    required this.startTime,
-    required this.suspiciousPoints,
-    required this.scannedArea,
-    required this.points,
-    this.clothingColor = 'أزرق',
-    this.extraDescription = '',
-  });
-}
-
-class SuspiciousPoint {
-  final int number;
-  final String location;
-  final String time;
-  final String status;
-
-  const SuspiciousPoint({
-    required this.number,
-    required this.location,
-    required this.time,
-    required this.status,
-  });
-}
-
-// بيانات كل طفل
-final missionsMap = <String, MissionData>{
-  '#1234': MissionData(
-    reportId: '#1234',
-    childName: 'محمد أحمد',
-    childDescription: 'يرتدي قميص أزرق',
-    lastLocation: 'حي النزهة، شارع الملك فهد',
-    disappearTime: 'اليوم، 15:00',
-    guardianName: 'أحمد محمد',
-    guardianPhone: '+966 50 123 4567',
-    missionDuration: '3:15:20',
-    startTime: '15:00',
-    suspiciousPoints: 2,
-    scannedArea: 40,
-    clothingColor: 'أزرق',
-    extraDescription: 'يرتدي قبعة بيضاء، شعره قصير',
-    points: [
-      SuspiciousPoint(
-        number: 2,
-        location: 'قرب الموقع المحدد - 200 متر',
-        time: 'منذ 15 دقيقة',
-        status: 'قيد المراجعة',
-      ),
-      SuspiciousPoint(
-        number: 1,
-        location: 'حي النزهة - 500 متر',
-        time: 'منذ 30 دقيقة',
-        status: 'غير مطابق',
-      ),
-    ],
-  ),
-  '#1235': MissionData(
-    reportId: '#1235',
-    childName: 'سارة أحمد',
-    childDescription: 'ترتدي فستان وردي',
-    lastLocation: 'حي الربوة، شارع العليا',
-    disappearTime: 'اليوم، 14:30',
-    guardianName: 'أحمد محمد',
-    guardianPhone: '+966 50 123 4567',
-    missionDuration: '0:45:10',
-    startTime: '14:30',
-    suspiciousPoints: 1,
-    scannedArea: 15,
-    clothingColor: 'وردي',
-    extraDescription: '',
-    points: [
-      SuspiciousPoint(
-        number: 1,
-        location: 'قرب الموقع المحدد - 200 متر شمالاً',
-        time: 'منذ 15 دقيقة',
-        status: 'قيد المراجعة',
-      ),
-    ],
-  ),
-  '#1233': MissionData(
-    reportId: '#1233',
-    childName: 'عمر خالد',
-    childDescription: 'يرتدي قميص أحمر',
-    lastLocation: 'حي الروضة، شارع العليا',
-    disappearTime: 'اليوم، 12:00',
-    guardianName: 'خالد العمر',
-    guardianPhone: '+966 55 111 2222',
-    missionDuration: '2:10:00',
-    startTime: '12:00',
-    suspiciousPoints: 0,
-    scannedArea: 60,
-    clothingColor: 'أحمر',
-    extraDescription: '',
-    points: const [],
-  ),
-  '#1232': MissionData(
-    reportId: '#1232',
-    childName: 'فاطمة ماجد',
-    childDescription: 'ترتدي عباءة سوداء',
-    lastLocation: 'حي العزيزية، شارع الأمير محمد',
-    disappearTime: 'أمس، 18:00',
-    guardianName: 'ماجد الحربي',
-    guardianPhone: '+966 55 987 6543',
-    missionDuration: '5:00:00',
-    startTime: '18:00',
-    suspiciousPoints: 0,
-    scannedArea: 80,
-    clothingColor: 'أسود',
-    extraDescription: '',
-    points: const [],
-  ),
-};
-
 class MissionDetailsScreen extends StatelessWidget {
   final String reportId;
-  const MissionDetailsScreen({super.key, this.reportId = '#1234'});
+  const MissionDetailsScreen({super.key, this.reportId = ''});
 
-  static const Color _bg = Color(0xFFF4EFEB);
-  static const Color _navy = Color(0xFF3D5A6C);
+  static const Color _bg    = Color(0xFFF4EFEB);
+  static const Color _navy  = Color(0xFF3D5A6C);
   static const Color _navy2 = Color(0xFF2E4A5A);
   static const Color _green = Color(0xFF16C47F);
 
   @override
   Widget build(BuildContext context) {
-    final data = missionsMap[reportId] ?? missionsMap['#1234']!;
+    if (reportId.isEmpty) {
+      return const Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(body: Center(child: Text('لا توجد بيانات'))),
+      );
+    }
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: _bg,
-        body: Column(
-          children: [
-            _Header(
-              title: 'تفاصيل البلاغ ${data.reportId}',
-              onBack: () => Navigator.of(context).pop(),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _SectionCard(
-                      title: 'بيانات الطفل',
-                      child: Column(
-                        children: [
-                          _InfoRow(
-                            leadingIcon: Icons.person_outline,
-                            title: data.childName,
-                            isBold: true,
-                          ),
-                          const SizedBox(height: 12),
-                          _InfoRow(
-                            leadingIcon: Icons.checkroom_outlined,
-                            label: 'لون الملابس العلوية',
-                            title: data.clothingColor,
-                          ),
-                          if (data.extraDescription.isNotEmpty) ...[
-                            const SizedBox(height: 12),
-                            _InfoRow(
-                              leadingIcon: Icons.description_outlined,
-                              label: 'وصف إضافي',
-                              title: data.extraDescription,
-                            ),
-                          ],
-                          const SizedBox(height: 12),
-                          _InfoRow(
-                            leadingIcon: Icons.access_time,
-                            label: 'وقت الاختفاء',
-                            title: data.disappearTime,
-                          ),
-                        ],
-                      ),
-                    ),
+        body: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance.collection('reports').doc(reportId).snapshots(),
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(color: Color(0xFF3D5A6C)));
+            }
+            if (!snap.hasData || !snap.data!.exists) {
+              return const Center(child: Text('البلاغ غير موجود'));
+            }
 
-                    const SizedBox(height: 14),
+            final data = snap.data!.data() as Map<String, dynamic>;
+            final childName       = data['childName']       ?? 'غير محدد';
+            final description     = data['description']     ?? '';
+            final location        = data['location']        ?? '';
+            final clothingColor   = data['clothingColor']   ?? '';
+            final guardianName    = data['guardianName']    ?? '';
+            final guardianPhone   = data['guardianPhone']   ?? '';
+            final status          = data['status']          ?? 'active';
+            final lat             = (data['latitude']  as num?)?.toDouble() ?? 24.7136;
+            final lng             = (data['longitude'] as num?)?.toDouble() ?? 46.6753;
+            final childPos        = LatLng(lat, lng);
 
-                    _SectionCard(
-                      title: 'بيانات ولي الأمر',
-                      child: Column(
-                        children: [
-                          _InfoRow(
-                            leadingIcon: Icons.person_outline,
-                            label: 'الاسم',
-                            title: data.guardianName,
-                          ),
-                          const SizedBox(height: 12),
-                          _InfoRow(
-                            leadingIcon: Icons.phone_outlined,
-                            label: 'رقم الجوال',
-                            title: data.guardianPhone,
-                          ),
-                          const SizedBox(height: 14),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: ElevatedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.phone, color: Colors.white, size: 20),
-                              label: const Text('الاتصال بولي الأمر',
-                                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _navy,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                elevation: 0,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+            // وقت الاختفاء
+            String disappearTime = '';
+            if (data['createdAt'] != null) {
+              final ts = data['createdAt'] as Timestamp;
+              final dt = ts.toDate();
+              disappearTime = '${dt.year}/${dt.month}/${dt.day}  ${dt.hour}:${dt.minute.toString().padLeft(2,'0')}';
+            }
 
-                    const SizedBox(height: 14),
+            return Column(
+              children: [
+                _Header(
+                  title: 'تفاصيل البلاغ',
+                  onBack: () => Navigator.of(context).pop(),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
 
-                    _SectionCard(
-                      title: 'الخريطة الحية',
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _MapPreview(scannedArea: data.scannedArea, location: const LatLng(24.7136, 46.6753)),
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF9F9F9),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFFE0E0E0)),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.location_on, size: 16, color: Color(0xFFEF5350)),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text('آخر موقع للطفل',
-                                          style: TextStyle(fontSize: 10, color: Color(0xFF9E9E9E))),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        data.lastLocation,
-                                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF2D2D2D)),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                        // بيانات الطفل
+                        _SectionCard(
+                          title: 'بيانات الطفل',
+                          child: Column(
+                            children: [
+                              _InfoRow(leadingIcon: Icons.person_outline, title: childName, isBold: true),
+                              if (clothingColor.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                _InfoRow(leadingIcon: Icons.checkroom_outlined, label: 'لون الملابس العلوية', title: clothingColor),
                               ],
-                            ),
+                              if (description.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                _InfoRow(leadingIcon: Icons.description_outlined, label: 'وصف إضافي', title: description),
+                              ],
+                              if (disappearTime.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                _InfoRow(leadingIcon: Icons.access_time, label: 'وقت الإبلاغ', title: disappearTime),
+                              ],
+                              const SizedBox(height: 12),
+                              // حالة البلاغ
+                              _StatusBadge(status: status),
+                            ],
                           ),
-                          const SizedBox(height: 10),
+                        ),
 
-                          // ✅ (تعديل 2) زر الخريطة صار مريح
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: ElevatedButton.icon(
-                              onPressed: () => _openFullMap(context, data),
-                              icon: const Icon(Icons.location_on, color: Colors.white, size: 18),
-                              label: const Text(
-                                'عرض الخريطة بملء الشاشة',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
-                                  height: 1.2,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _navy,
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                elevation: 0,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                        const SizedBox(height: 14),
 
-
-
-
-                    const SizedBox(height: 14),
-
-                    _SectionCard(
-                      title: 'التحكم بالمهمة',
-                      child: SizedBox(
-                        height: 56,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            elevation: 0,
-                          ),
-                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MissionControlScreen(reportId: data.reportId, startActive: true))),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(Icons.play_arrow, color: Colors.white, size: 24),
-                              SizedBox(width: 8),
-                              Text(
-                                'بدء',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
+                        // بيانات ولي الأمر
+                        _SectionCard(
+                          title: 'بيانات ولي الأمر',
+                          child: Column(
+                            children: [
+                              if (guardianName.isNotEmpty)
+                                _InfoRow(leadingIcon: Icons.person_outline, label: 'الاسم', title: guardianName),
+                              if (guardianPhone.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                _InfoRow(leadingIcon: Icons.phone_outlined, label: 'رقم الجوال', title: guardianPhone),
+                              ],
+                              const SizedBox(height: 14),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 52,
+                                child: ElevatedButton.icon(
+                                  onPressed: guardianPhone.isNotEmpty ? () {} : null,
+                                  icon: const Icon(Icons.phone, color: Colors.white, size: 20),
+                                  label: const Text('الاتصال بولي الأمر',
+                                      style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: _navy,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    elevation: 0,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
+
+                        const SizedBox(height: 14),
+
+                        // الخريطة
+                        _SectionCard(
+                          title: 'الخريطة الحية',
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _MapPreview(location: childPos),
+                              const SizedBox(height: 10),
+                              if (location.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF9F9F9),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.location_on, size: 16, color: Color(0xFFEF5350)),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            const Text('آخر موقع للطفل',
+                                                style: TextStyle(fontSize: 10, color: Color(0xFF9E9E9E))),
+                                            const SizedBox(height: 2),
+                                            Text(location,
+                                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                                overflow: TextOverflow.ellipsis),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 52,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _openFullMap(context, childPos, childName),
+                                  icon: const Icon(Icons.location_on, color: Colors.white, size: 18),
+                                  label: const Text('عرض الخريطة بملء الشاشة',
+                                      style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: _navy,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // تحديث الحالة
+                        _SectionCard(
+                          title: 'تحديث الحالة',
+                          child: _StatusButtons(reportId: reportId, currentStatus: status),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // التحكم بالمهمة
+                        _SectionCard(
+                          title: 'التحكم بالمهمة',
+                          child: SizedBox(
+                            height: 56,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _green,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                elevation: 0,
+                              ),
+                              onPressed: () => Navigator.push(context,
+                                  MaterialPageRoute(builder: (_) => MissionControlScreen(reportId: reportId, startActive: true))),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.play_arrow, color: Colors.white, size: 24),
+                                  SizedBox(width: 8),
+                                  Text('بدء التحكم', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  void _openFullMap(BuildContext context, MissionData data) {
+  void _openFullMap(BuildContext context, LatLng pos, String childName) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _FullMapSheet(
-        location: LatLng(24.7136, 46.6753),
-        childName: data.childName,
-      ),
+      builder: (_) => _FullMapSheet(location: pos, childName: childName),
     );
   }
+}
 
-  void _showCompleteMissionDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('إتمام المهمة'),
-          content: const Text('هل أنت متأكد من إتمام هذه المهمة؟'),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('إلغاء')),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                Navigator.of(context).pop();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _green,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('تأكيد', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+// ── أزرار تحديث الحالة ──
+class _StatusButtons extends StatelessWidget {
+  const _StatusButtons({required this.reportId, required this.currentStatus});
+  final String reportId;
+  final String currentStatus;
+
+  Future<void> _update(BuildContext context, String newStatus) async {
+    await FirebaseFirestore.instance.collection('reports').doc(reportId).update({'status': newStatus});
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('تم تحديث الحالة'), backgroundColor: const Color(0xFF3D5A6C)),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: [
+        _StatusBtn(label: 'نشط',          status: 'active',     current: currentStatus, color: const Color(0xFFEF5350), onTap: () => _update(context, 'active')),
+        _StatusBtn(label: 'قيد المتابعة', status: 'inProgress', current: currentStatus, color: const Color(0xFF2196F3), onTap: () => _update(context, 'inProgress')),
+        _StatusBtn(label: 'تم العثور',    status: 'found',      current: currentStatus, color: const Color(0xFF00D995), onTap: () => _update(context, 'found')),
+        _StatusBtn(label: 'مغلق',         status: 'closed',     current: currentStatus, color: const Color(0xFF9E9E9E), onTap: () => _update(context, 'closed')),
+      ],
+    );
+  }
+}
+
+class _StatusBtn extends StatelessWidget {
+  const _StatusBtn({required this.label, required this.status, required this.current, required this.color, required this.onTap});
+  final String label, status, current;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = status == current;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? color : color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color, width: 1.5),
         ),
+        child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: selected ? Colors.white : color)),
       ),
     );
   }
 }
 
+// ── Header ──
 class _Header extends StatelessWidget {
   const _Header({required this.title, required this.onBack});
   final String title;
   final VoidCallback onBack;
-
-  static const Color _navy = Color(0xFF3D5A6C);
-  static const Color _navy2 = Color(0xFF2E4A5A);
 
   @override
   Widget build(BuildContext context) {
@@ -413,7 +309,7 @@ class _Header extends StatelessWidget {
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [_navy2, _navy],
+          colors: [Color(0xFF2E4A5A), Color(0xFF3D5A6C)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -425,7 +321,6 @@ class _Header extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Row(
             children: [
-              // ✅ (تعديل 1) السهم صار forward في RTL
               IconButton(
                 onPressed: onBack,
                 icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
@@ -434,15 +329,8 @@ class _Header extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+                child: Text(title, textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
               ),
               const SizedBox(width: 28),
             ],
@@ -453,87 +341,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _StatusCard extends StatelessWidget {
-  const _StatusCard({required this.data});
-  final MissionData data;
-
-  static const Color _navy = Color(0xFF3D5A6C);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: _navy,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.12),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const Text('حالة المهمة', style: TextStyle(color: Colors.white70, fontSize: 12)),
-              const Spacer(),
-              const Text(
-                'نشطة',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(color: Color(0xFF16C47F), shape: BoxShape.circle),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(child: _MiniStat(label: 'وقت البدء', value: data.startTime)),
-              Expanded(child: _MiniStat(label: 'المدة', value: data.missionDuration, alignEnd: true)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(child: _MiniStat(label: 'المنطقة الممسوحة', value: '${data.scannedArea.toInt()}%')),
-              Expanded(child: _MiniStat(label: 'نقاط الاشتباه', value: data.suspiciousPoints.toString(), alignEnd: true)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({required this.label, required this.value, this.alignEnd = false});
-  final String label;
-  final String value;
-  final bool alignEnd;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-      children: [
-        Text(
-          value,
-          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
-        ),
-        const SizedBox(height: 2),
-        Text(label, style: const TextStyle(color: Colors.white60, fontSize: 11)),
-      ],
-    );
-  }
-}
-
+// ── SectionCard ──
 class _SectionCard extends StatelessWidget {
   const _SectionCard({required this.title, required this.child});
   final String title;
@@ -546,13 +354,7 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, 6))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -566,14 +368,9 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
+// ── InfoRow ──
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.leadingIcon,
-    this.label,
-    required this.title,
-    this.isBold = false,
-  });
-
+  const _InfoRow({required this.leadingIcon, this.label, required this.title, this.isBold = false});
   final IconData leadingIcon;
   final String? label;
   final String title;
@@ -594,15 +391,11 @@ class _InfoRow extends StatelessWidget {
                 Text(label!, style: const TextStyle(fontSize: 11, color: Color(0xFF9E9E9E))),
                 const SizedBox(height: 3),
               ],
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: isBold ? FontWeight.w900 : FontWeight.w700,
-                  color: const Color(0xFF222222),
-                  height: 1.2,
-                ),
-              ),
+              Text(title, style: TextStyle(
+                fontSize: 14,
+                fontWeight: isBold ? FontWeight.w900 : FontWeight.w700,
+                color: const Color(0xFF222222),
+              )),
             ],
           ),
         ),
@@ -611,54 +404,49 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _PrimaryButton extends StatelessWidget {
-  const _PrimaryButton({
-    required this.text,
-    required this.icon,
-    required this.background,
-    required this.onTap,
-    this.height = 54,
-    this.radius = 18,
-  });
+// ── StatusBadge ──
+class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.status});
+  final String status;
 
-  final String text;
-  final IconData icon;
-  final Color background;
-  final VoidCallback onTap;
-  final double height;
-  final double radius;
+  String get label {
+    switch (status) {
+      case 'active':     return 'نشط';
+      case 'inProgress': return 'قيد المتابعة';
+      case 'found':      return 'تم العثور';
+      case 'closed':     return 'مغلق';
+      default:           return 'نشط';
+    }
+  }
+
+  Color get color {
+    switch (status) {
+      case 'active':     return const Color(0xFFEF5350);
+      case 'inProgress': return const Color(0xFF2196F3);
+      case 'found':      return const Color(0xFF00D995);
+      case 'closed':     return const Color(0xFF9E9E9E);
+      default:           return const Color(0xFFEF5350);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: height,
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: onTap,
-        icon: Icon(icon, color: Colors.white, size: 20),
-        label: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Text(
-            text,
-            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800),
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: background,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
-          elevation: 0,
-        ),
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withOpacity(0.4))),
+        child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
       ),
     );
   }
 }
 
+// ── MapPreview ──
 class _MapPreview extends StatelessWidget {
-  const _MapPreview({required this.scannedArea, this.location = const LatLng(24.7136, 46.6753)});
-  final double scannedArea;
+  const _MapPreview({required this.location});
   final LatLng location;
-
-  static const Color _navy = Color(0xFF3D5A6C);
 
   @override
   Widget build(BuildContext context) {
@@ -666,185 +454,29 @@ class _MapPreview extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       child: SizedBox(
         height: 170,
-        child: Stack(
-          children: [
-            GoogleMap(
-              initialCameraPosition: CameraPosition(target: location, zoom: 15),
-              markers: {
-                Marker(
-                  markerId: const MarkerId('child'),
-                  position: location,
-                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-                ),
-              },
-              zoomControlsEnabled: false,
-              scrollGesturesEnabled: false,
-              rotateGesturesEnabled: false,
-              tiltGesturesEnabled: false,
-              zoomGesturesEnabled: false,
-              myLocationButtonEnabled: false,
-              liteModeEnabled: true,
+        child: GoogleMap(
+          initialCameraPosition: CameraPosition(target: location, zoom: 15),
+          markers: {
+            Marker(
+              markerId: const MarkerId('child'),
+              position: location,
+              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
             ),
-            Positioned(
-              top: 10,
-              left: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(color: _navy, borderRadius: BorderRadius.circular(20)),
-                child: const Text(
-                  'في المنطقة • DR-01',
-                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 10,
-              right: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-                child: Text(
-                  '${scannedArea.toInt()}% ممسوحة',
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
-                ),
-              ),
-            ),
-          ],
+          },
+          zoomControlsEnabled: false,
+          scrollGesturesEnabled: false,
+          rotateGesturesEnabled: false,
+          tiltGesturesEnabled: false,
+          zoomGesturesEnabled: false,
+          myLocationButtonEnabled: false,
+          liteModeEnabled: true,
         ),
       ),
     );
   }
 }
 
-class _SuspiciousPointCard extends StatelessWidget {
-  const _SuspiciousPointCard({required this.point, required this.onTap});
-  final SuspiciousPoint point;
-  final VoidCallback onTap;
-
-  bool get isBad => point.status.trim() == 'غير مطابق';
-
-  Color get bg => isBad ? const Color(0xFFFFEBEE) : const Color(0xFFFFF8E1);
-  Color get border => isBad ? const Color(0xFFEF5350) : const Color(0xFFFFD54F);
-  Color get badge => isBad ? const Color(0xFFEF5350) : const Color(0xFFFFB300);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: border, width: 1.6),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // عنوان يمين + (يسار: بادج فوق + عرض والتحقق تحتها)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  'نقطة اشتباه #${point.number}',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: badge, borderRadius: BorderRadius.circular(18)),
-                    child: Text(
-                      point.status,
-                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
-                    ),
-                  ),
-
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(point.time, style: const TextStyle(fontSize: 12, color: Color(0xFF757575))),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              const Icon(Icons.location_on, size: 14, color: Color(0xFFEF5350)),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  point.location,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF757575)),
-                ),
-              ),
-              const SizedBox(width: 8),
-              InkWell(
-                onTap: onTap,
-                borderRadius: BorderRadius.circular(12),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('عرض والتحقق',
-                        style: TextStyle(color: Color(0xFF3D5A6C), fontWeight: FontWeight.w900, fontSize: 12)),
-                    SizedBox(width: 4),
-                    Icon(Icons.arrow_forward_ios, size: 12, color: Color(0xFF3D5A6C)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CameraThumb extends StatelessWidget {
-  const _CameraThumb({required this.time});
-  final String time;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        color: const Color(0xFFE0E0E0),
-        child: Stack(
-          children: [
-            Center(
-              child: Icon(Icons.camera_alt_outlined, size: 34, color: Colors.grey.shade600),
-            ),
-            Positioned(
-              bottom: 10,
-              left: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.55),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.camera_alt, size: 12, color: Colors.white),
-                    const SizedBox(width: 6),
-                    Text(
-                      time,
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── شيت الخريطة الكاملة ──
+// ── FullMapSheet ──
 class _FullMapSheet extends StatefulWidget {
   final LatLng location;
   final String childName;
@@ -857,23 +489,19 @@ class _FullMapSheet extends StatefulWidget {
 class _FullMapSheetState extends State<_FullMapSheet> {
   GoogleMapController? _mapController;
   LatLng? _myLocation;
-  bool _loading = false;
 
   Future<void> _goToMyLocation() async {
-    setState(() => _loading = true);
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) { setState(() => _loading = false); return; }
+      if (!serviceEnabled) return;
       LocationPermission perm = await Geolocator.checkPermission();
       if (perm == LocationPermission.denied) perm = await Geolocator.requestPermission();
-      if (perm == LocationPermission.deniedForever) { setState(() => _loading = false); return; }
+      if (perm == LocationPermission.deniedForever) return;
       final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
       final myPos = LatLng(pos.latitude, pos.longitude);
-      setState(() { _myLocation = myPos; _loading = false; });
+      setState(() => _myLocation = myPos);
       _mapController?.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: myPos, zoom: 16)));
-    } catch (_) {
-      setState(() => _loading = false);
-    }
+    } catch (_) {}
   }
 
   @override
@@ -904,13 +532,11 @@ class _FullMapSheetState extends State<_FullMapSheet> {
         ),
         child: Column(
           children: [
-            // هاندل
             Container(
               margin: const EdgeInsets.only(top: 12),
               width: 40, height: 4,
               decoration: BoxDecoration(color: const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2)),
             ),
-            // هيدر
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
@@ -921,7 +547,6 @@ class _FullMapSheetState extends State<_FullMapSheet> {
                 ],
               ),
             ),
-            // الخريطة
             Expanded(
               child: Stack(
                 children: [
@@ -933,16 +558,21 @@ class _FullMapSheetState extends State<_FullMapSheet> {
                     myLocationButtonEnabled: false,
                     zoomControlsEnabled: true,
                   ),
-
+                  Positioned(
+                    bottom: 16, left: 16,
+                    child: FloatingActionButton.small(
+                      onPressed: _goToMyLocation,
+                      backgroundColor: const Color(0xFF3D5A6C),
+                      child: const Icon(Icons.my_location, color: Colors.white),
+                    ),
+                  ),
                 ],
               ),
             ),
-            // زر إغلاق
             Padding(
               padding: const EdgeInsets.all(16),
               child: SizedBox(
-                width: double.infinity,
-                height: 52,
+                width: double.infinity, height: 52,
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
