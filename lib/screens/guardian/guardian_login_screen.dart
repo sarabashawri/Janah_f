@@ -72,18 +72,15 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                   child: Stack(
                     children: [
                       Positioned(
-                        right: 16,
-                        top: 20,
+                        right: 16, top: 20,
                         child: IconButton(
                           onPressed: () => Navigator.of(context).pop(),
                           icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
                         ),
                       ),
                       const Center(
-                        child: Text(
-                          'تسجيل الدخول',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
-                        ),
+                        child: Text('تسجيل الدخول',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
                       ),
                     ],
                   ),
@@ -98,21 +95,14 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
                     ),
                     child: Form(
                       key: _formKey,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('البريد الإلكتروني',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          const Text('البريد الإلكتروني', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _emailController,
@@ -124,16 +114,14 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
                               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
                               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2)),
-                              filled: true,
-                              fillColor: const Color(0xFFF9F9F9),
+                              filled: true, fillColor: const Color(0xFFF9F9F9),
                             ),
                             validator: (v) => v!.isEmpty ? 'أدخل البريد الإلكتروني' : null,
                           ),
 
                           const SizedBox(height: 20),
 
-                          const Text('كلمة المرور',
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                          const Text('كلمة المرور', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _passwordController,
@@ -149,8 +137,7 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
                               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
                               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF3D5A6C), width: 2)),
-                              filled: true,
-                              fillColor: const Color(0xFFF9F9F9),
+                              filled: true, fillColor: const Color(0xFFF9F9F9),
                             ),
                             validator: (v) => v!.length < 6 ? 'كلمة المرور قصيرة' : null,
                           ),
@@ -169,8 +156,7 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                           const SizedBox(height: 24),
 
                           SizedBox(
-                            width: double.infinity,
-                            height: 56,
+                            width: double.infinity, height: 56,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
@@ -179,10 +165,8 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                               ),
                               child: _isLoading
                                   ? const CircularProgressIndicator(color: Colors.white)
-                                  : const Text(
-                                      'تسجيل الدخول',
-                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
-                                    ),
+                                  : const Text('تسجيل الدخول',
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
                             ),
                           ),
 
@@ -191,19 +175,11 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text('ليس لديك حساب؟ ',
-                                  style: TextStyle(fontSize: 14, color: Color(0xFF757575))),
+                              const Text('ليس لديك حساب؟ ', style: TextStyle(fontSize: 14, color: Color(0xFF757575))),
                               TextButton(
                                 onPressed: () => Navigator.pushNamed(context, '/guardian/register'),
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const Text(
-                                  'سجل الآن',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF3D5A6C)),
-                                ),
+                                style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                                child: const Text('سجل الآن', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF3D5A6C))),
                               ),
                             ],
                           ),
