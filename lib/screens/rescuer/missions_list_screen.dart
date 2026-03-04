@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'mission_details_screen.dart';
 
 class MissionsListScreen extends StatefulWidget {
@@ -17,9 +18,6 @@ class _MissionsListScreenState extends State<MissionsListScreen>
   static const Color _navy = Color(0xFF3D5A6C);
   static const Color _bg   = Color(0xFFF4EFEB);
 
-  // بيانات البلاغات مأخوذة من missionsMap
-  List<MissionData> get _allMissions => missionsMap.values.toList();
-
   @override
   void initState() {
     super.initState();
@@ -33,23 +31,33 @@ class _MissionsListScreenState extends State<MissionsListScreen>
     super.dispose();
   }
 
-  List<MissionData> _filtered(String type) {
-    List<MissionData> list;
-    if (type == 'نشط') {
-      list = _allMissions.where((m) => m.scannedArea < 100).toList();
-    } else if (type == 'مغلق') {
-      list = _allMissions.where((m) => m.scannedArea >= 100).toList();
-    } else {
-      list = _allMissions;
+  Stream<QuerySnapshot> _stream(String type) {
+    final col = FirebaseFirestore.instance.collection('reports');
+    if (type == 'active') {
+      return col.where('status', isEqualTo: 'active').orderBy('createdAt', descending: true).snapshots();
+    } else if (type == 'closed') {
+      return col.where('status', whereIn: ['found', 'closed']).orderBy('createdAt', descending: true).snapshots();
     }
-    if (_searchQuery.isNotEmpty) {
-      list = list.where((m) =>
-        m.childName.contains(_searchQuery) ||
-        m.reportId.contains(_searchQuery) ||
-        m.lastLocation.contains(_searchQuery)
-      ).toList();
-    }
-    return list;
+    return col.orderBy('createdAt', descending: true).snapshots();
+  }
+
+  String _timeAgo(Timestamp? ts) {
+    if (ts == null) return '';
+    final diff = DateTime.now().difference(ts.toDate());
+    if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
+    if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
+    return 'منذ ${diff.inDays} يوم';
+  }
+
+  List<QueryDocumentSnapshot> _applySearch(List<QueryDocumentSnapshot> docs) {
+    if (_searchQuery.isEmpty) return docs;
+    return docs.where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final name = (data['childName'] ?? '').toString().toLowerCase();
+      final loc  = (data['location'] ?? '').toString().toLowerCase();
+      final q = _searchQuery.toLowerCase();
+      return name.contains(q) || loc.contains(q) || doc.id.contains(q);
+    }).toList();
   }
 
   @override
@@ -66,9 +74,9 @@ class _MissionsListScreenState extends State<MissionsListScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildList('نشط'),
-                    _buildList('مغلق'),
-                    _buildList('الكل'),
+                    _buildList('active'),
+                    _buildList('closed'),
+                    _buildList('all'),
                   ],
                 ),
               ),
@@ -90,8 +98,7 @@ class _MissionsListScreenState extends State<MissionsListScreen>
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('قائمة البلاغات',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
+              Text('قائمة البلاغات', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
               Icon(Icons.filter_list, color: Colors.white),
             ],
           ),
@@ -142,21 +149,46 @@ class _MissionsListScreenState extends State<MissionsListScreen>
   }
 
   Widget _buildList(String type) {
-    final missions = _filtered(type);
-    if (missions.isEmpty) {
-      return Center(child: Text('لا توجد بلاغات', style: TextStyle(color: Colors.grey.shade600)));
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: missions.length,
-      itemBuilder: (context, index) {
-        final m = missions[index];
-        return _MissionCard(
-          mission: m,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => MissionDetailsScreen(reportId: m.reportId)),
-          ),
+    return StreamBuilder<QuerySnapshot>(
+      stream: _stream(type),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: _navy));
+        }
+        final docs = _applySearch(snap.data?.docs ?? []);
+        if (docs.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.assignment_outlined, size: 56, color: Colors.grey.shade400),
+                const SizedBox(height: 12),
+                Text('لا توجد بلاغات', style: TextStyle(color: Colors.grey.shade600, fontSize: 15)),
+              ],
+            ),
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final data = docs[index].data() as Map<String, dynamic>;
+            final status = data['status'] ?? 'active';
+            final isActive = status == 'active' || status == 'inProgress';
+            return _MissionCard(
+              reportId: docs[index].id,
+              childName: data['childName'] ?? 'غير محدد',
+              location: data['location'] ?? '',
+              description: data['description'] ?? '',
+              timeAgo: _timeAgo(data['createdAt'] as Timestamp?),
+              status: status,
+              isActive: isActive,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => MissionDetailsScreen(reportId: docs[index].id)),
+              ),
+            );
+          },
         );
       },
     );
@@ -164,22 +196,46 @@ class _MissionsListScreenState extends State<MissionsListScreen>
 }
 
 class _MissionCard extends StatelessWidget {
-  const _MissionCard({required this.mission, required this.onTap});
-  final MissionData mission;
+  const _MissionCard({
+    required this.reportId,
+    required this.childName,
+    required this.location,
+    required this.description,
+    required this.timeAgo,
+    required this.status,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final String reportId, childName, location, description, timeAgo, status;
+  final bool isActive;
   final VoidCallback onTap;
 
   static const Color _navy = Color(0xFF3D5A6C);
   static const Color _bg   = Color(0xFFF4EFEB);
 
+  String get _statusLabel {
+    switch (status) {
+      case 'active': return 'نشط';
+      case 'inProgress': return 'قيد المتابعة';
+      case 'found': return 'تم العثور';
+      case 'closed': return 'مغلق';
+      default: return 'نشط';
+    }
+  }
+
+  Color get _statusColor {
+    switch (status) {
+      case 'active': return const Color(0xFFEF5350);
+      case 'inProgress': return const Color(0xFF2196F3);
+      case 'found': return const Color(0xFF00D995);
+      case 'closed': return const Color(0xFF9E9E9E);
+      default: return const Color(0xFFEF5350);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isActive = mission.scannedArea < 100;
-    final statusColor = isActive
-        ? const Color(0xFFFFEB3B)
-        : const Color(0xFFEF5350).withOpacity(0.15);
-    final statusTextColor = isActive ? Colors.black87 : const Color(0xFFEF5350);
-    final statusLabel = isActive ? 'نشط' : 'مغلقة';
-
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -189,18 +245,12 @@ class _MissionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isActive
-                ? const Color(0xFFFFEB3B).withOpacity(0.6)
-                : const Color(0xFFEF5350).withOpacity(0.2),
-            width: 1.5,
-          ),
+          border: Border.all(color: _statusColor.withOpacity(0.3), width: 1.5),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // الاسم والحالة
             Row(
               children: [
                 const CircleAvatar(
@@ -213,69 +263,45 @@ class _MissionCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(mission.childName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                      Text(mission.reportId, style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
+                      Text(childName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      Text(timeAgo, style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
                     ],
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(20)),
-                  child: Text(statusLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: statusTextColor)),
+                  decoration: BoxDecoration(color: _statusColor.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
+                  child: Text(_statusLabel, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _statusColor)),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-
-            // الموقع
-            Row(
-              children: [
-                const Icon(Icons.location_on, size: 14, color: Color(0xFFEF5350)),
-                const SizedBox(width: 4),
-                Expanded(child: Text(mission.lastLocation, style: const TextStyle(fontSize: 12, color: Color(0xFF757575)))),
-              ],
-            ),
-            const SizedBox(height: 4),
-
-            // الوقت
-            Row(
-              children: [
-                const Icon(Icons.access_time, size: 14, color: Color(0xFF9E9E9E)),
-                const SizedBox(width: 4),
-                Text(mission.disappearTime, style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // الوصف
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(color: _bg, borderRadius: BorderRadius.circular(8)),
-              child: Text(mission.childDescription, style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
-            ),
-
+            Row(children: [
+              const Icon(Icons.location_on, size: 14, color: Color(0xFFEF5350)),
+              const SizedBox(width: 4),
+              Expanded(child: Text(location, style: const TextStyle(fontSize: 12, color: Color(0xFF757575)))),
+            ]),
+            if (description.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(color: _bg, borderRadius: BorderRadius.circular(8)),
+                child: Text(description, style: const TextStyle(fontSize: 12, color: Color(0xFF555555)), maxLines: 2, overflow: TextOverflow.ellipsis),
+              ),
+            ],
             const SizedBox(height: 12),
             const Divider(height: 1),
             const SizedBox(height: 10),
-
-            // عرض التفاصيل
-            Align(
+            const Align(
               alignment: Alignment.centerLeft,
-              child: InkWell(
-                onTap: onTap,
-                borderRadius: BorderRadius.circular(8),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('عرض التفاصيل', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy)),
-                      SizedBox(width: 6),
-                      Icon(Icons.arrow_forward_ios, size: 14, color: _navy),
-                    ],
-                  ),
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('عرض التفاصيل', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _navy)),
+                  SizedBox(width: 6),
+                  Icon(Icons.arrow_forward_ios, size: 14, color: _navy),
+                ],
               ),
             ),
           ],
