@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:convert' show utf8;
 import 'Verification_screen.dart';
 
 // ← غيري هذا الـ IP لـ IP الكمبيوتر اللي يشتغل عليه TypeFly
@@ -83,34 +82,16 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
 
   Future<void> _sendToTypefly(String command) async {
     try {
-      final request = http.Request('POST', Uri.parse('$_TYPEFLY_URL/api/command'));
-      request.headers['Content-Type'] = 'application/json';
-      request.body = jsonEncode({'message': command});
-
-      final streamedResponse = await request.send().timeout(const Duration(seconds: 10));
+      final response = await http.post(
+        Uri.parse('$_TYPEFLY_URL/api/command'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'message': command, 'reportId': widget.reportId}),
+      ).timeout(const Duration(seconds: 10));
 
       if (!mounted) return;
 
-      if (streamedResponse.statusCode == 200) {
-        // قراءة SSE stream تدريجياً
-        await for (final chunk in streamedResponse.stream.transform(utf8.decoder)) {
-          if (!mounted) return;
-          final lines = chunk.split('\n');
-          for (final line in lines) {
-            if (line.startsWith('data: ')) {
-              final data = line.substring(6).trim();
-              if (data == '[DONE]') return;
-              try {
-                final json = jsonDecode(data);
-                final text = json['content'] as String? ?? '';
-                if (text.isNotEmpty) {
-                  setState(() => _chatMessages.add(_ChatMessage(text: text, isBot: true)));
-                  _scrollToBottom();
-                }
-              } catch (_) {}
-            }
-          }
-        }
+      if (response.statusCode == 200) {
+        // الرد سيجي من Firebase تلقائياً عبر StreamBuilder
       } else {
         setState(() => _chatMessages.add(_ChatMessage(
           text: '⚠️ تعذر الاتصال بالدرون',
@@ -309,14 +290,34 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                     const Divider(height: 1),
                     SizedBox(
                       height: 220,
-                      child: _chatMessages.isEmpty
-                          ? const Center(child: Text('لا توجد رسائل بعد', style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 13)))
-                          : ListView.builder(
-                              controller: _chatScrollController,
-                              padding: const EdgeInsets.all(12),
-                              itemCount: _chatMessages.length,
-                              itemBuilder: (_, i) => _buildChatBubble(_chatMessages[i]),
-                            ),
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('mission_messages')
+                            .where('reportId', isEqualTo: widget.reportId)
+                            .orderBy('createdAt')
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                            return const Center(
+                              child: Text('لا توجد رسائل بعد', style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 13)),
+                            );
+                          }
+                          final docs = snapshot.data!.docs;
+                          WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+                          return ListView.builder(
+                            controller: _chatScrollController,
+                            padding: const EdgeInsets.all(12),
+                            itemCount: docs.length,
+                            itemBuilder: (_, i) {
+                              final data = docs[i].data() as Map<String, dynamic>;
+                              return _buildChatBubble(_ChatMessage(
+                                text: data['text'] ?? '',
+                                isBot: data['isBot'] ?? false,
+                              ));
+                            },
+                          );
+                        },
+                      ),
                     ),
                     const Divider(height: 1),
                     Padding(
