@@ -61,9 +61,9 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
   String _timeAgo(Timestamp? ts) {
     if (ts == null) return '';
     final diff = DateTime.now().difference(ts.toDate());
-    if (diff.inMinutes < 60) return 'منذ \${diff.inMinutes} دقيقة';
-    if (diff.inHours < 24) return 'منذ \${diff.inHours} ساعة';
-    return 'منذ \${diff.inDays} يوم';
+    if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
+    if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
+    return 'منذ ${diff.inDays} يوم';
   }
 
   @override
@@ -119,7 +119,7 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
                         children: [
                           Container(width: 7, height: 7, decoration: const BoxDecoration(color: Color(0xFFEF5350), shape: BoxShape.circle)),
                           const SizedBox(width: 4),
-                          Text('\$unread تنبيهات جديدة', style: const TextStyle(fontSize: 12, color: Colors.white70)),
+                          Text('$unread تنبيهات جديدة', style: const TextStyle(fontSize: 12, color: Colors.white70)),
                         ],
                       );
                     },
