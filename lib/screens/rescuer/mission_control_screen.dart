@@ -64,19 +64,13 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
   }
 
   void _sendQuick(String text) {
-    setState(() => _chatMessages.add(_ChatMessage(text: text, isBot: false)));
-    _scrollToBottom();
     _sendToTypefly(text);
   }
 
   void _sendCommand() {
     final text = _droneCommandController.text.trim();
     if (text.isEmpty) return;
-    setState(() {
-      _chatMessages.add(_ChatMessage(text: text, isBot: false));
-      _droneCommandController.clear();
-    });
-    _scrollToBottom();
+    _droneCommandController.clear();
     _sendToTypefly(text);
   }
 
