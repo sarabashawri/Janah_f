@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:convert' show utf8;
 import 'Verification_screen.dart';
 
 // ← غيري هذا الـ IP لـ IP الكمبيوتر اللي يشتغل عليه TypeFly
@@ -82,20 +83,34 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
 
   Future<void> _sendToTypefly(String command) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_TYPEFLY_URL/api/command'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'message': command}),
-      ).timeout(const Duration(seconds: 10));
+      final request = http.Request('POST', Uri.parse('$_TYPEFLY_URL/api/command'));
+      request.headers['Content-Type'] = 'application/json';
+      request.body = jsonEncode({'message': command});
+
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 10));
 
       if (!mounted) return;
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() => _chatMessages.add(_ChatMessage(
-          text: data['reply'] ?? '✅ تم استقبال الأمر',
-          isBot: true,
-        )));
+      if (streamedResponse.statusCode == 200) {
+        // قراءة SSE stream تدريجياً
+        await for (final chunk in streamedResponse.stream.transform(utf8.decoder)) {
+          if (!mounted) return;
+          final lines = chunk.split('\n');
+          for (final line in lines) {
+            if (line.startsWith('data: ')) {
+              final data = line.substring(6).trim();
+              if (data == '[DONE]') return;
+              try {
+                final json = jsonDecode(data);
+                final text = json['content'] as String? ?? '';
+                if (text.isNotEmpty) {
+                  setState(() => _chatMessages.add(_ChatMessage(text: text, isBot: true)));
+                  _scrollToBottom();
+                }
+              } catch (_) {}
+            }
+          }
+        }
       } else {
         setState(() => _chatMessages.add(_ChatMessage(
           text: '⚠️ تعذر الاتصال بالدرون',
