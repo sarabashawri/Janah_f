@@ -169,6 +169,15 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
+      // إشعار لفريق الإنقاذ
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'type': 'newReport',
+        'title': 'بلاغ جديد: ${_childNameController.text.trim()}',
+        'description': 'تم رفع بلاغ جديد عن طفل مفقود في ${_locationController.text.trim()}',
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
       if (mounted) {
         setState(() => _isLoading = false);
         Navigator.of(context).pop();
