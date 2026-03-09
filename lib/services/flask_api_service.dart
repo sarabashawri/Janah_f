@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 /// ← Change this IP to match the computer running TypeFly:
 /// (must be on the same WiFi network)
 class FlaskApiService {
-  static String baseUrl = 'http://10.0.2.2:50000';
+  static String baseUrl = 'http://192.168.1.9:50000';
 
   // ─────────────────────────────────────────────
   // Phase 1 — Health Check
