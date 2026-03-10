@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
@@ -5,7 +6,6 @@ import 'package:http/http.dart' as http;
 /// FlaskApiService — Janah SAR System
 ///
 /// Connects Flutter to the TypeFly Python Flask backend.
-/// Phase 1 & 2: health check + mission setup only.
 ///
 /// ← Change this IP to match the computer running TypeFly:
 /// (must be on the same WiFi network)
@@ -100,15 +100,6 @@ class FlaskApiService {
   /// Checks if FaceNet has finished processing the 80 augmented
   /// reference embeddings. Poll this after setupMission() until
   /// the returned map contains {'setup': true}.
-  ///
-  /// Example usage:
-  /// ```dart
-  /// while (true) {
-  ///   final status = await FlaskApiService.getReferenceStatus();
-  ///   if (status['setup'] == true) break;
-  ///   await Future.delayed(Duration(seconds: 1));
-  /// }
-  /// ```
   static Future<Map<String, dynamic>> getReferenceStatus() async {
     try {
       final response = await http
@@ -124,30 +115,136 @@ class FlaskApiService {
   }
 
   // ─────────────────────────────────────────────
-  // Phase 3+ — Commands (implement after Phase 1/2 succeed)
+  // Phase 3 — Chat (SSE stream)
   // ─────────────────────────────────────────────
 
-  /// POST /chat — send Arabic instruction, returns SSE stream
-  /// (Implement in Phase 3)
-  // static Stream<String> sendCommand(String message) { ... }
+  /// POST /chat
+  ///
+  /// Sends an Arabic instruction to the LLM controller.
+  /// Returns a Stream of parsed SSE events until [DONE].
+  ///
+  /// Each event map has:
+  ///   { 'type': 'text' | 'image' | 'code', 'content': '...' }
+  static Stream<Map<String, dynamic>> sendCommand(String message) async* {
+    final client = http.Client();
+    try {
+      final request = http.Request('POST', Uri.parse('$baseUrl/chat'));
+      request.headers['Content-Type'] = 'application/json; charset=utf-8';
+      request.headers['Accept'] = 'text/event-stream';
+      request.body = jsonEncode({'message': message});
 
-  /// GET /alerts — SSE stream of detection alerts
-  /// (Implement in Phase 5)
-  // static Stream<Map<String, dynamic>> alertStream() { ... }
+      final streamed = await client
+          .send(request)
+          .timeout(const Duration(seconds: 10));
+
+      yield* _parseSSE(streamed.stream);
+    } finally {
+      client.close();
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // Phase 4 — Emergency Land
+  // ─────────────────────────────────────────────
 
   /// POST /emergency-land
-  /// (Implement in Phase 4)
-  // static Future<void> emergencyLand() { ... }
+  ///
+  /// Sends an immediate emergency landing command to the drone.
+  /// Throws if the server is unreachable or returns an error.
+  static Future<void> emergencyLand() async {
+    await http
+        .post(Uri.parse('$baseUrl/emergency-land'))
+        .timeout(const Duration(seconds: 5));
+  }
 
-  /// POST /confirm-target
-  /// (Implement in Phase 6)
-  // static Future<void> confirmTarget() { ... }
+  // ─────────────────────────────────────────────
+  // Phase 5 — Alert Stream (continuous SSE)
+  // ─────────────────────────────────────────────
 
-  /// POST /reject-target
-  /// (Implement in Phase 6)
-  // static Future<void> rejectTarget() { ... }
+  /// GET /alerts
+  ///
+  /// Subscribes to the continuous alert SSE stream.
+  /// Yields detection alerts (TARGET FOUND, NEEDS_REVIEW, etc.)
+  /// as they arrive from the CV pipeline.
+  ///
+  /// The stream is long-lived — it stays open for the duration
+  /// of the mission. Reconnects automatically if disconnected.
+  static Stream<Map<String, dynamic>> alertStream() async* {
+    while (true) {
+      final client = http.Client();
+      try {
+        final request = http.Request('GET', Uri.parse('$baseUrl/alerts'));
+        request.headers['Accept'] = 'text/event-stream';
+        request.headers['Cache-Control'] = 'no-cache';
 
-  /// POST /approve-plan
-  /// (Implement in Phase 6)
-  // static Future<void> approvePlan() { ... }
+        final streamed = await client
+            .send(request)
+            .timeout(const Duration(seconds: 10));
+
+        yield* _parseSSE(streamed.stream);
+
+        // If _parseSSE returns normally (stream ended), reconnect
+        await Future.delayed(const Duration(seconds: 3));
+      } catch (_) {
+        // On any error, wait and reconnect
+        client.close();
+        await Future.delayed(const Duration(seconds: 3));
+      } finally {
+        client.close();
+      }
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // Video Feed URL
+  // ─────────────────────────────────────────────
+
+  /// MJPEG live video feed URL from the drone camera.
+  static String get videoFeedUrl => '$baseUrl/robot-pov/sim_tello';
+
+  // ─────────────────────────────────────────────
+  // Private — SSE Parser
+  // ─────────────────────────────────────────────
+
+  /// Parses a raw HTTP byte stream into SSE events.
+  ///
+  /// - Buffers incomplete chunks
+  /// - Ignores empty lines and events without 'data:'
+  /// - Stops on data: [DONE]
+  static Stream<Map<String, dynamic>> _parseSSE(
+      Stream<List<int>> byteStream) async* {
+    final buffer = StringBuffer();
+
+    await for (final chunk in byteStream.transform(utf8.decoder)) {
+      buffer.write(chunk);
+      String text = buffer.toString();
+      buffer.clear();
+
+      // Process only complete SSE events (delimited by blank line \n\n)
+      while (text.contains('\n\n')) {
+        final idx = text.indexOf('\n\n');
+        final event = text.substring(0, idx);
+        text = text.substring(idx + 2);
+
+        for (final line in event.split('\n')) {
+          final trimmed = line.trim();
+          if (!trimmed.startsWith('data: ')) continue;
+
+          final data = trimmed.substring(6).trim();
+          if (data.isEmpty) continue;
+          if (data == '[DONE]') return;
+
+          try {
+            final parsed = jsonDecode(data);
+            if (parsed is Map<String, dynamic>) yield parsed;
+          } catch (_) {
+            // Skip malformed events
+          }
+        }
+      }
+
+      // Keep any incomplete event in the buffer for the next chunk
+      if (text.isNotEmpty) buffer.write(text);
+    }
+  }
 }

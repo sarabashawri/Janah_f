@@ -1,5 +1,8 @@
+import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 import 'package:janah_complete/services/flask_api_service.dart';
 
 // ─── Setup Phase ──────────────────────────────────────────────────────────────
@@ -21,6 +24,8 @@ class MissionControlScreen extends StatefulWidget {
 class _MissionControlScreenState extends State<MissionControlScreen> {
   _SetupPhase _setupPhase = _SetupPhase.idle;
   String _errorMessage = '';
+  bool _isSending = false;
+  StreamSubscription<Map<String, dynamic>>? _alertSub;
 
   final TextEditingController _droneCommandController = TextEditingController();
   final ScrollController _chatScrollController = ScrollController();
@@ -41,6 +46,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
 
   @override
   void dispose() {
+    _alertSub?.cancel();
     _droneCommandController.dispose();
     _chatScrollController.dispose();
     super.dispose();
@@ -98,20 +104,61 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
     }
     if (!mounted) return;
 
+    // Update report status to inProgress in Firebase
+    try {
+      await FirebaseFirestore.instance
+          .collection('reports')
+          .doc(widget.reportId)
+          .update({'status': 'inProgress'});
+    } catch (_) {
+      // Non-critical — continue even if status update fails
+    }
+
     setState(() => _setupPhase = _SetupPhase.ready);
+    _startAlertStream();
   }
 
   void _startMission() => _initializeMission();
 
-  // ─── Stubs — will be wired in Phase 3 ─────────────────────────────────────
-  void _sendCommand() {
-    // Phase 3: FlaskApiService.sendCommand(_droneCommandController.text)
+  // ─── Phase 3 — Send Command ───────────────────────────────────────────────
+  Future<void> _sendCommand() async {
+    final text = _droneCommandController.text.trim();
+    if (text.isEmpty || _isSending) return;
+
+    _droneCommandController.clear();
+    setState(() => _isSending = true);
+
+    // Write user message to Firebase
+    await _writeMissionMessage(text: text, isBot: false, isAlert: false);
+
+    try {
+      await for (final event in FlaskApiService.sendCommand(text)) {
+        if (!mounted) break;
+        final type = event['type'] as String? ?? 'text';
+        final content = event['content'] as String? ?? '';
+        if (type == 'text' && content.isNotEmpty) {
+          await _writeMissionMessage(text: content, isBot: true, isAlert: false);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        await _writeMissionMessage(
+          text: 'خطأ في الاتصال بالخادم: $e',
+          isBot: true,
+          isAlert: false,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSending = false);
+    }
   }
 
-  void _sendQuick(String text) {
-    // Phase 3: FlaskApiService.sendCommand(text)
+  Future<void> _sendQuick(String text) async {
+    _droneCommandController.text = text;
+    await _sendCommand();
   }
 
+  // ─── Phase 4 — Emergency Landing ─────────────────────────────────────────
   void _emergencyLanding() {
     showDialog(
       context: context,
@@ -136,9 +183,26 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
               child: const Text('إلغاء'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
-                // Phase 4: FlaskApiService.emergencyLand()
+                try {
+                  await FlaskApiService.emergencyLand();
+                  if (mounted) {
+                    await _writeMissionMessage(
+                      text: '🚨 تم إصدار أمر الهبوط الطارئ للدرون',
+                      isBot: true,
+                      isAlert: false,
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    await _writeMissionMessage(
+                      text: 'فشل إرسال أمر الهبوط: $e',
+                      isBot: true,
+                      isAlert: false,
+                    );
+                  }
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _red,
@@ -153,6 +217,42 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
         ),
       ),
     );
+  }
+
+  // ─── Phase 5 — Alert Stream ───────────────────────────────────────────────
+  void _startAlertStream() {
+    _alertSub?.cancel();
+    _alertSub = FlaskApiService.alertStream().listen(
+      (event) async {
+        if (!mounted) return;
+        final content = event['content'] as String? ?? '';
+        if (content.isNotEmpty) {
+          await _writeMissionMessage(
+            text: content,
+            isBot: true,
+            isAlert: true,
+          );
+        }
+      },
+      onError: (_) {
+        // alertStream() handles reconnect internally — no action needed
+      },
+    );
+  }
+
+  // ─── Firebase Helper ──────────────────────────────────────────────────────
+  Future<void> _writeMissionMessage({
+    required String text,
+    required bool isBot,
+    required bool isAlert,
+  }) async {
+    await FirebaseFirestore.instance.collection('mission_messages').add({
+      'reportId': widget.reportId,
+      'text': text,
+      'isBot': isBot,
+      'isAlert': isAlert,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
   }
 
   // ─── Build ─────────────────────────────────────────────────────────────────
@@ -394,8 +494,10 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
     );
   }
 
-  // ─── Active Mission (Phase 1/2 complete) ──────────────────────────────────
+  // ─── Active Mission ────────────────────────────────────────────────────────
   Widget _buildActiveState() {
+    final isReady = _setupPhase == _SetupPhase.ready;
+
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('reports')
@@ -513,7 +615,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                     ),
                     const Divider(height: 1),
 
-                    // Messages — Firebase StreamBuilder (createdAt ordering kept)
+                    // Messages — Firebase StreamBuilder
                     SizedBox(
                       height: 220,
                       child: StreamBuilder<QuerySnapshot>(
@@ -527,7 +629,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                               snapshot.data!.docs.isEmpty) {
                             return const Center(
                               child: Text(
-                                'الطائرة جاهزة ✅\nالأوامر ستُفعَّل قريباً',
+                                'الطائرة جاهزة ✅\nأرسل أمرك الأول',
                                 style: TextStyle(
                                     color: Color(0xFF9E9E9E), fontSize: 13),
                                 textAlign: TextAlign.center,
@@ -547,6 +649,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                               return _buildChatBubble(_ChatMessage(
                                 text: d['text'] ?? '',
                                 isBot: d['isBot'] ?? false,
+                                isAlert: d['isAlert'] ?? false,
                               ));
                             },
                           );
@@ -556,7 +659,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
 
                     const Divider(height: 1),
 
-                    // Quick chips — disabled until Phase 3
+                    // Quick chips
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
                       child: Wrap(
@@ -566,36 +669,40 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                           _QuickChip(
                               label: 'ماذا ترى؟',
                               onTap: () => _sendQuick('ماذا ترى؟'),
-                              enabled: false),
+                              enabled: isReady && !_isSending),
                           _QuickChip(
                               label: 'تحرك للأمام',
                               onTap: () => _sendQuick('تحرك للأمام'),
-                              enabled: false),
+                              enabled: isReady && !_isSending),
                           _QuickChip(
                               label: 'التقط صورة الآن',
                               onTap: () => _sendQuick('التقط صورة الآن'),
-                              enabled: false),
+                              enabled: isReady && !_isSending),
                           _QuickChip(
                               label: 'عد للقاعدة',
                               onTap: () => _sendQuick('عد للقاعدة'),
-                              enabled: false),
+                              enabled: isReady && !_isSending),
                         ],
                       ),
                     ),
 
                     const Divider(height: 1),
 
-                    // Command input — disabled until Phase 3
+                    // Command input
                     Padding(
                       padding: const EdgeInsets.all(12),
                       child: Row(children: [
                         Expanded(
                           child: TextField(
                             controller: _droneCommandController,
-                            enabled: false,
+                            enabled: isReady && !_isSending,
                             textAlign: TextAlign.right,
+                            textDirection: TextDirection.rtl,
+                            onSubmitted: (_) => _sendCommand(),
                             decoration: InputDecoration(
-                              hintText: 'الأوامر ستُفعَّل في المرحلة القادمة',
+                              hintText: isReady
+                                  ? 'اكتب أمرك بالعربية...'
+                                  : 'الأوامر ستُفعَّل في المرحلة القادمة',
                               hintTextDirection: TextDirection.rtl,
                               hintStyle: const TextStyle(
                                   fontSize: 13, color: Color(0xFF9E9E9E)),
@@ -603,12 +710,18 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                                   borderRadius: BorderRadius.circular(25),
                                   borderSide: const BorderSide(
                                       color: Color(0xFFE0E0E0))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                  borderSide: BorderSide(
+                                      color: _navy.withOpacity(0.3))),
                               disabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(25),
                                   borderSide: const BorderSide(
                                       color: Color(0xFFE0E0E0))),
                               filled: true,
-                              fillColor: const Color(0xFFF0F0F0),
+                              fillColor: isReady
+                                  ? Colors.white
+                                  : const Color(0xFFF0F0F0),
                               contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 10),
                               isDense: true,
@@ -616,15 +729,25 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Send button — disabled (opacity 0.35, no onTap)
-                        Opacity(
-                          opacity: 0.35,
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: const BoxDecoration(
-                                color: _navy, shape: BoxShape.circle),
-                            child: const Icon(Icons.send,
-                                color: Colors.white, size: 20),
+                        // Send button
+                        GestureDetector(
+                          onTap: (isReady && !_isSending) ? _sendCommand : null,
+                          child: Opacity(
+                            opacity: (isReady && !_isSending) ? 1.0 : 0.35,
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: const BoxDecoration(
+                                  color: _navy, shape: BoxShape.circle),
+                              child: _isSending
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                          color: Colors.white, strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.send,
+                                      color: Colors.white, size: 20),
+                            ),
                           ),
                         ),
                       ]),
@@ -635,7 +758,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
 
               const SizedBox(height: 16),
 
-              // ── Live video placeholder ─────────────────────────────────────
+              // ── Live video feed ────────────────────────────────────────────
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -663,43 +786,12 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                     const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(14),
-                      child: Container(
+                      child: SizedBox(
                         width: double.infinity,
                         height: 200,
-                        color: const Color(0xFF1A1A2E),
-                        child: Stack(children: [
-                          Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.videocam,
-                                    color: Colors.white.withOpacity(0.3),
-                                    size: 48),
-                                const SizedBox(height: 8),
-                                Text('جناح • جاري البث',
-                                    style: TextStyle(
-                                        color: Colors.white.withOpacity(0.5),
-                                        fontSize: 13)),
-                              ],
-                            ),
-                          ),
-                          Positioned(
-                            top: 10,
-                            right: 10,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                  color: _red,
-                                  borderRadius: BorderRadius.circular(6)),
-                              child: const Text('LIVE',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w800)),
-                            ),
-                          ),
-                        ]),
+                        child: _MjpegView(
+                          url: FlaskApiService.videoFeedUrl,
+                        ),
                       ),
                     ),
                   ],
@@ -748,8 +840,15 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                  color: _navy.withOpacity(0.1), shape: BoxShape.circle),
-              child: const Icon(Icons.flight, color: _navy, size: 14),
+                  color: msg.isAlert
+                      ? _red.withOpacity(0.12)
+                      : _navy.withOpacity(0.1),
+                  shape: BoxShape.circle),
+              child: Icon(
+                msg.isAlert ? Icons.notifications_active : Icons.flight,
+                color: msg.isAlert ? _red : _navy,
+                size: 14,
+              ),
             ),
             const SizedBox(width: 6),
           ],
@@ -758,7 +857,11 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: msg.isBot ? const Color(0xFFF0F4F7) : _navy,
+                color: msg.isAlert
+                    ? _red.withOpacity(0.08)
+                    : msg.isBot
+                        ? const Color(0xFFF0F4F7)
+                        : _navy,
                 borderRadius: BorderRadius.only(
                   topRight: const Radius.circular(16),
                   topLeft: const Radius.circular(16),
@@ -769,6 +872,9 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                       ? const Radius.circular(4)
                       : const Radius.circular(16),
                 ),
+                border: msg.isAlert
+                    ? Border.all(color: _red.withOpacity(0.3))
+                    : null,
               ),
               child: Text(msg.text,
                   style: TextStyle(
@@ -789,7 +895,180 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
 class _ChatMessage {
   final String text;
   final bool isBot;
-  _ChatMessage({required this.text, required this.isBot});
+  final bool isAlert;
+  _ChatMessage({
+    required this.text,
+    required this.isBot,
+    this.isAlert = false,
+  });
+}
+
+// ─── MJPEG Video Widget ───────────────────────────────────────────────────────
+
+class _MjpegView extends StatefulWidget {
+  final String url;
+  const _MjpegView({required this.url});
+
+  @override
+  State<_MjpegView> createState() => _MjpegViewState();
+}
+
+class _MjpegViewState extends State<_MjpegView> {
+  Uint8List? _frame;
+  http.Client? _client;
+  StreamSubscription<List<int>>? _sub;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _connect();
+  }
+
+  Future<void> _connect() async {
+    if (!mounted) return;
+    setState(() {
+      _error = false;
+      _frame = null;
+    });
+
+    try {
+      _client = http.Client();
+      final request = http.Request('GET', Uri.parse(widget.url));
+      final response = await _client!
+          .send(request)
+          .timeout(const Duration(seconds: 10));
+
+      final buf = <int>[];
+
+      _sub = response.stream.listen(
+        (chunk) {
+          buf.addAll(chunk);
+
+          // Find JPEG frames by SOI (FF D8) and EOI (FF D9) markers
+          int soiIdx = -1;
+          for (int i = 0; i < buf.length - 1; i++) {
+            if (buf[i] == 0xFF && buf[i + 1] == 0xD8) {
+              soiIdx = i;
+              break;
+            }
+          }
+          if (soiIdx == -1) return;
+
+          for (int j = soiIdx + 2; j < buf.length - 1; j++) {
+            if (buf[j] == 0xFF && buf[j + 1] == 0xD9) {
+              // Complete JPEG frame found
+              final frame = Uint8List.fromList(buf.sublist(soiIdx, j + 2));
+              buf.removeRange(0, j + 2);
+              if (mounted) setState(() => _frame = frame);
+              break;
+            }
+          }
+
+          // Prevent buffer overflow (> 1 MB)
+          if (buf.length > 1048576) buf.clear();
+        },
+        onError: (_) {
+          if (mounted) setState(() => _error = true);
+        },
+        onDone: () {
+          if (mounted) setState(() => _error = true);
+        },
+      );
+    } catch (_) {
+      if (mounted) setState(() => _error = true);
+    }
+  }
+
+  @override
+  void dispose() {
+    // Cancel subscription before closing client to avoid callbacks after close
+    _sub?.cancel();
+    _client?.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error) {
+      return Container(
+        color: const Color(0xFF1A1A2E),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.videocam_off,
+                  color: Colors.white54, size: 36),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: _connect,
+                child: const Text('إعادة الاتصال',
+                    style: TextStyle(color: Colors.white70)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (_frame == null) {
+      return Container(
+        color: const Color(0xFF1A1A2E),
+        child: Stack(children: [
+          const Center(
+            child: CircularProgressIndicator(
+                color: Colors.white38, strokeWidth: 2),
+          ),
+          Positioned(
+            top: 10,
+            right: 10,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                  color: const Color(0xFFEF5350),
+                  borderRadius: BorderRadius.circular(6)),
+              child: const Text('LIVE',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800)),
+            ),
+          ),
+        ]),
+      );
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.memory(_frame!, fit: BoxFit.cover, gaplessPlayback: true),
+        Positioned(
+          top: 10,
+          right: 10,
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+                color: const Color(0xFFEF5350),
+                borderRadius: BorderRadius.circular(6)),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.circle, color: Colors.white, size: 6),
+                SizedBox(width: 4),
+                Text('LIVE',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // ─── Helper Widgets ───────────────────────────────────────────────────────────
