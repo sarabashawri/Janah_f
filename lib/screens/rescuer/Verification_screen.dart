@@ -51,7 +51,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   if (widget.reportId.isNotEmpty) {
                     await FirebaseFirestore.instance.collection('reports').doc(widget.reportId).update({'status': 'found'});
                   }
-                  if (mounted) Navigator.pop(context);
+                  if (mounted) Navigator.pop(context, 'confirmed');
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: _green),
                 child: const Text('تأكيد العثور', style: TextStyle(color: Colors.white)),
@@ -79,7 +79,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               onPressed: () async {
                 Navigator.pop(context);
                 await FlaskApiService.rejectTarget();
-                if (mounted) Navigator.pop(context);
+                if (mounted) Navigator.pop(context, 'rejected');
               },
               style: ElevatedButton.styleFrom(backgroundColor: _red),
               child: const Text('متابعة البحث', style: TextStyle(color: Colors.white)),

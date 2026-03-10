@@ -26,6 +26,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
   _SetupPhase _setupPhase = _SetupPhase.idle;
   String _errorMessage = '';
   bool _isSending = false;
+  final List<_SuspiciousPoint> _suspiciousPoints = [];
   StreamSubscription<Map<String, dynamic>>? _alertSub;
 
   final TextEditingController _droneCommandController = TextEditingController();
@@ -242,17 +243,15 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
         }
 
         if (cv != null && mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => VerificationScreen(
-                reportId: widget.reportId,
-                matchScore: (cv['match_score'] as num?)?.toInt() ?? 0,
-                colorMatch: cv['color_match'] as bool? ?? false,
-                alertType: cv['alert_type'] as String? ?? 'candidate',
-              ),
-            ),
-          );
+          setState(() {
+            _suspiciousPoints.insert(0, _SuspiciousPoint(
+              number: _suspiciousPoints.length + 1,
+              matchScore: (cv['match_score'] as num?)?.toInt() ?? 0,
+              colorMatch: cv['color_match'] as bool? ?? false,
+              alertType: cv['alert_type'] as String? ?? 'candidate',
+              detectedAt: DateTime.now(),
+            ));
+          });
         }
       },
       onError: (_) {
@@ -821,6 +820,38 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
 
               const SizedBox(height: 16),
 
+              // ── نقاط الاشتباه ─────────────────────────────────────────────
+              if (_suspiciousPoints.isNotEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4))
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(children: [
+                        Icon(Icons.location_searching, color: Color(0xFF3D5A6C), size: 18),
+                        SizedBox(width: 8),
+                        Text('نقاط الاشتباه',
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      ]),
+                      const SizedBox(height: 12),
+                      ..._suspiciousPoints.map((p) => _buildSuspiciousCard(p)),
+                    ],
+                  ),
+                ),
+
+              const SizedBox(height: 16),
+
               // ── Back button ───────────────────────────────────────────────
               SizedBox(
                 width: double.infinity,
@@ -846,6 +877,107 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSuspiciousCard(_SuspiciousPoint point) {
+    final isPending   = point.status == 'pending';
+    final isConfirmed = point.status == 'confirmed';
+
+    final badgeColor = isPending
+        ? const Color(0xFFFFB300)
+        : isConfirmed
+            ? const Color(0xFF00D995)
+            : const Color(0xFFEF5350);
+    final badgeText = isPending
+        ? 'قيد المراجعة'
+        : isConfirmed
+            ? 'تم العثور'
+            : 'غير مطابق';
+    final bgColor = isPending
+        ? const Color(0xFFFFFDE7)
+        : isConfirmed
+            ? const Color(0xFFE8FFF5)
+            : const Color(0xFFFFEBEB);
+    final borderColor = isPending
+        ? const Color(0xFFFFEB3B)
+        : isConfirmed
+            ? const Color(0xFF00D995)
+            : const Color(0xFFEF5350);
+
+    final mins = DateTime.now().difference(point.detectedAt).inMinutes;
+    final timeText = mins < 1 ? 'الآن' : 'منذ $mins دقيقة';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: borderColor, width: 1.5),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('نقطة اشتباه #${point.number}',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                Text(timeText,
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF757575))),
+                const SizedBox(height: 2),
+                Text(
+                  'تطابق الوجه: ${point.matchScore}% · الملابس: ${point.colorMatch ? "✓" : "✗"}',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF757575)),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(20)),
+                  child: Text(badgeText,
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+                ),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: () async {
+                    final result = await Navigator.push<String>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => VerificationScreen(
+                          reportId: widget.reportId,
+                          pointNumber: point.number,
+                          matchScore: point.matchScore,
+                          colorMatch: point.colorMatch,
+                          alertType: point.alertType,
+                        ),
+                      ),
+                    );
+                    if (result != null && mounted) {
+                      setState(() => point.status = result);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3D5A6C),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text('عرض والتحقق',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -912,6 +1044,24 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
 }
 
 // ─── Data Models ──────────────────────────────────────────────────────────────
+
+class _SuspiciousPoint {
+  final int number;
+  final int matchScore;
+  final bool colorMatch;
+  final String alertType;
+  final DateTime detectedAt;
+  String status; // 'pending' | 'confirmed' | 'rejected'
+
+  _SuspiciousPoint({
+    required this.number,
+    required this.matchScore,
+    required this.colorMatch,
+    required this.alertType,
+    required this.detectedAt,
+    this.status = 'pending',
+  });
+}
 
 class _ChatMessage {
   final String text;
