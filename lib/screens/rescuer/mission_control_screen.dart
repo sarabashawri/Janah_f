@@ -103,7 +103,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
       _setupPhase = _SetupPhase.polling;
       _pollSeconds = 0;
     });
-    const maxPollSeconds = 1200; // 20 minutes
+    const maxPollSeconds = 2700; // 45 minutes
     while (mounted && _pollSeconds < maxPollSeconds) {
       final status = await FlaskApiService.getReferenceStatus();
       if (status['setup'] == true) break;
@@ -115,7 +115,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
     if (_pollSeconds >= maxPollSeconds) {
       setState(() {
         _setupPhase = _SetupPhase.error;
-        _errorMessage = 'انتهت مهلة التهيئة (20 دقيقة)\nتحقق من أداء الخادم وأعد المحاولة';
+        _errorMessage = 'انتهت مهلة التهيئة (45 دقيقة)\nتحقق من أداء الخادم وأعد المحاولة';
       });
       return;
     }
@@ -354,7 +354,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
         final mins = _pollSeconds ~/ 60;
         final secs = (_pollSeconds % 60).toString().padLeft(2, '0');
         return _buildLoadingState(
-            'جارٍ تهيئة نظام التعرف على الوجه...\n$mins:$secs / 20:00 دقيقة');
+            'جارٍ تهيئة نظام التعرف على الوجه...\n$mins:$secs / 45:00 دقيقة');
       case _SetupPhase.ready:
         return _buildActiveState();
       case _SetupPhase.error:
