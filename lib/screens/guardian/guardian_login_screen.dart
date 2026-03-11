@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 
@@ -36,11 +37,31 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
         }
       } catch (e) {
         if (mounted) {
+          String msg = 'خطأ: تحقق من البريد وكلمة المرور';
+          if (e is FirebaseAuthException) {
+            switch (e.code) {
+              case 'user-not-found':
+                msg = 'البريد الإلكتروني غير مسجل';
+                break;
+              case 'wrong-password':
+              case 'invalid-credential':
+                msg = 'كلمة المرور غير صحيحة';
+                break;
+              case 'invalid-email':
+                msg = 'البريد الإلكتروني غير صالح';
+                break;
+              case 'user-disabled':
+                msg = 'هذا الحساب معطل';
+                break;
+              case 'network-request-failed':
+                msg = 'تحقق من اتصال الإنترنت';
+                break;
+              default:
+                msg = 'خطأ (${e.code}): ${e.message ?? ''}';
+            }
+          }
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('خطأ: تحقق من البريد وكلمة المرور'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(msg), backgroundColor: Colors.red),
           );
         }
       } finally {

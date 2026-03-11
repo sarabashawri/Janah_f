@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/auth_service.dart';
@@ -67,8 +68,27 @@ class _GuardianRegisterScreenState extends State<GuardianRegisterScreen> {
         if (mounted) Navigator.of(context).pushReplacementNamed('/guardian/home');
       } catch (e) {
         if (mounted) {
+          String msg = 'خطأ في التسجيل: تحقق من البيانات';
+          if (e is FirebaseAuthException) {
+            switch (e.code) {
+              case 'email-already-in-use':
+                msg = 'البريد الإلكتروني مستخدم بالفعل';
+                break;
+              case 'invalid-email':
+                msg = 'البريد الإلكتروني غير صالح';
+                break;
+              case 'weak-password':
+                msg = 'كلمة المرور ضعيفة جداً (6 أحرف على الأقل)';
+                break;
+              case 'network-request-failed':
+                msg = 'تحقق من اتصال الإنترنت';
+                break;
+              default:
+                msg = 'خطأ (${e.code}): ${e.message ?? ''}';
+            }
+          }
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('خطأ في التسجيل: تحقق من البيانات')),
+            SnackBar(content: Text(msg), backgroundColor: Colors.red),
           );
         }
       } finally {
