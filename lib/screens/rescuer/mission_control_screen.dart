@@ -25,6 +25,7 @@ class MissionControlScreen extends StatefulWidget {
 class _MissionControlScreenState extends State<MissionControlScreen> {
   _SetupPhase _setupPhase = _SetupPhase.idle;
   String _errorMessage = '';
+  int _pollSeconds = 0;
   bool _isSending = false;
   final List<_SuspiciousPoint> _suspiciousPoints = [];
   StreamSubscription<Map<String, dynamic>>? _alertSub;
@@ -97,18 +98,27 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
     }
     if (!mounted) return;
 
-    // Phase 2B — Poll until FaceNet finishes (max 30 seconds)
-    // If face recognition is disabled on the server, setup stays false forever
-    // → break after timeout and proceed anyway
-    setState(() => _setupPhase = _SetupPhase.polling);
-    final deadline = DateTime.now().add(const Duration(seconds: 30));
-    while (mounted) {
+    // Phase 2B — Poll until FaceNet finishes processing embeddings (max 20 min)
+    setState(() {
+      _setupPhase = _SetupPhase.polling;
+      _pollSeconds = 0;
+    });
+    const maxPollSeconds = 1200; // 20 minutes
+    while (mounted && _pollSeconds < maxPollSeconds) {
       final status = await FlaskApiService.getReferenceStatus();
       if (status['setup'] == true) break;
-      if (DateTime.now().isAfter(deadline)) break;
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) setState(() => _pollSeconds += 2);
     }
     if (!mounted) return;
+
+    if (_pollSeconds >= maxPollSeconds) {
+      setState(() {
+        _setupPhase = _SetupPhase.error;
+        _errorMessage = 'انتهت مهلة التهيئة (20 دقيقة)\nتحقق من أداء الخادم وأعد المحاولة';
+      });
+      return;
+    }
 
     // Update report status to inProgress in Firebase
     try {
@@ -341,7 +351,10 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
       case _SetupPhase.uploading:
         return _buildLoadingState('جارٍ رفع بيانات الطفل...');
       case _SetupPhase.polling:
-        return _buildLoadingState('جارٍ تهيئة نظام التعرف على الوجه...');
+        final mins = _pollSeconds ~/ 60;
+        final secs = (_pollSeconds % 60).toString().padLeft(2, '0');
+        return _buildLoadingState(
+            'جارٍ تهيئة نظام التعرف على الوجه...\n$mins:$secs / 20:00 دقيقة');
       case _SetupPhase.ready:
         return _buildActiveState();
       case _SetupPhase.error:
