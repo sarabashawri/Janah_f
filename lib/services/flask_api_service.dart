@@ -71,7 +71,7 @@ class FlaskApiService {
 
     // Attach image file
     req.files.add(http.MultipartFile.fromBytes(
-      'file', // ← must match Flask's request.files['file']
+      'photo', // ← must match Flask's request.files['photo']
       bytes,
       filename: 'child.jpg',
     ));
