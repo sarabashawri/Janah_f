@@ -37,8 +37,15 @@ class FlaskApiService {
 
   /// POST /upload-reference
   ///
-  /// Fetches the missing child's report from Firestore, then uploads
-  /// the reference photo + metadata to the Flask CV pipeline.
+  /// Firebase → Flutter → Flask CV pipeline:
+  ///   1. Reads the missing child's report from Firestore (collection: reports)
+  ///   2. Extracts: imageBase64, childName, clothingColor, description
+  ///   3. Decodes imageBase64 → bytes (guardian-uploaded reference photo)
+  ///   4. Sends multipart POST to /upload-reference so the LLM/CV system
+  ///      uses this image as the reference for face & clothing comparison
+  ///      against the drone camera stream (YOLO detections).
+  ///
+  /// Mission will NOT start if imageBase64 is missing or empty.
   ///
   /// Handles both field names used in Firestore:
   ///   Guardian reports  → 'description'
