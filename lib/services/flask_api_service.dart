@@ -85,7 +85,7 @@ class FlaskApiService {
 
     // 4. Send and await response
     final streamedResponse =
-        await req.send().timeout(const Duration(seconds: 120));
+        await req.send().timeout(const Duration(minutes: 10));
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200) {
