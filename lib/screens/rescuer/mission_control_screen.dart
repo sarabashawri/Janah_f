@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -28,6 +29,8 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
   int _pollSeconds = 0;
   bool _isSending = false;
   final List<_SuspiciousPoint> _suspiciousPoints = [];
+  final List<_LocalImageMessage> _localImageMessages = [];
+  Uint8List? _latestFrame;
   StreamSubscription<Map<String, dynamic>>? _alertSub;
 
   final TextEditingController _droneCommandController = TextEditingController();
@@ -253,6 +256,15 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
         }
 
         if (cv != null && mounted) {
+          final img = _latestFrame;
+          final imgB64 = img != null ? base64Encode(img) : null;
+
+          if (img != null) {
+            setState(() => _localImageMessages.add(
+              _LocalImageMessage(imageBytes: img, createdAt: DateTime.now()),
+            ));
+          }
+
           setState(() {
             _suspiciousPoints.insert(0, _SuspiciousPoint(
               number: _suspiciousPoints.length + 1,
@@ -260,6 +272,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
               colorMatch: cv['color_match'] as bool? ?? false,
               alertType: cv['alert_type'] as String? ?? 'candidate',
               detectedAt: DateTime.now(),
+              capturedImageBase64: imgB64,
             ));
           });
         }
@@ -648,6 +661,41 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                     ),
                     const Divider(height: 1),
 
+                    // Captured alert images (local, not stored in Firestore)
+                    if (_localImageMessages.isNotEmpty)
+                      SizedBox(
+                        height: 100,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.all(8),
+                          itemCount: _localImageMessages.length,
+                          itemBuilder: (_, i) {
+                            final msg = _localImageMessages[i];
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: Column(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.memory(
+                                      msg.imageBytes,
+                                      width: 72,
+                                      height: 72,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  const Text('لقطة',
+                                      style: TextStyle(
+                                          fontSize: 9,
+                                          color: Color(0xFF9E9E9E))),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
                     // Messages — Firebase StreamBuilder
                     SizedBox(
                       height: 220,
@@ -824,6 +872,9 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                         height: 200,
                         child: _MjpegView(
                           url: FlaskApiService.videoFeedUrl,
+                          onFrame: (f) {
+                            if (mounted) setState(() => _latestFrame = f);
+                          },
                         ),
                       ),
                     ),
@@ -979,6 +1030,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                           matchScore: point.matchScore,
                           colorMatch: point.colorMatch,
                           alertType: point.alertType,
+                          capturedImageBase64: point.capturedImageBase64,
                         ),
                       ),
                     );
@@ -1075,6 +1127,7 @@ class _SuspiciousPoint {
   final String alertType;
   final DateTime detectedAt;
   String status; // 'pending' | 'confirmed' | 'rejected'
+  final String? capturedImageBase64;
 
   _SuspiciousPoint({
     required this.number,
@@ -1083,7 +1136,14 @@ class _SuspiciousPoint {
     required this.alertType,
     required this.detectedAt,
     this.status = 'pending',
+    this.capturedImageBase64,
   });
+}
+
+class _LocalImageMessage {
+  final Uint8List imageBytes;
+  final DateTime createdAt;
+  _LocalImageMessage({required this.imageBytes, required this.createdAt});
 }
 
 class _ChatMessage {
@@ -1101,7 +1161,8 @@ class _ChatMessage {
 
 class _MjpegView extends StatefulWidget {
   final String url;
-  const _MjpegView({required this.url});
+  final void Function(Uint8List)? onFrame;
+  const _MjpegView({required this.url, this.onFrame});
 
   @override
   State<_MjpegView> createState() => _MjpegViewState();
@@ -1154,7 +1215,10 @@ class _MjpegViewState extends State<_MjpegView> {
               // Complete JPEG frame found
               final frame = Uint8List.fromList(buf.sublist(soiIdx, j + 2));
               buf.removeRange(0, j + 2);
-              if (mounted) setState(() => _frame = frame);
+              if (mounted) {
+                setState(() => _frame = frame);
+                widget.onFrame?.call(frame);
+              }
               break;
             }
           }

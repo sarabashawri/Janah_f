@@ -9,6 +9,7 @@ class VerificationScreen extends StatefulWidget {
   final int matchScore;
   final bool colorMatch;
   final String alertType;
+  final String? capturedImageBase64;
 
   const VerificationScreen({
     super.key,
@@ -17,6 +18,7 @@ class VerificationScreen extends StatefulWidget {
     this.matchScore = 0,
     this.colorMatch = false,
     this.alertType = 'candidate',
+    this.capturedImageBase64,
   });
 
   @override
@@ -217,8 +219,15 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                                   children: [
                                                     Container(
                                                       height: 130,
-                                                      decoration: BoxDecoration(color: const Color(0xFFCFE8CF), borderRadius: BorderRadius.circular(12)),
-                                                      child: const Center(child: Icon(Icons.flight, size: 40, color: Color(0xFF4CAF50))),
+                                                      decoration: BoxDecoration(color: const Color(0xFFE8E8E8), borderRadius: BorderRadius.circular(12)),
+                                                      clipBehavior: Clip.antiAlias,
+                                                      child: widget.capturedImageBase64 != null && widget.capturedImageBase64!.isNotEmpty
+                                                          ? Image.memory(
+                                                              base64Decode(widget.capturedImageBase64!),
+                                                              fit: BoxFit.cover,
+                                                              width: double.infinity,
+                                                            )
+                                                          : const Center(child: Icon(Icons.videocam_off, size: 40, color: Color(0xFF9E9E9E))),
                                                     ),
                                                     Positioned(
                                                       top: 8, right: 8,
