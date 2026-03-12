@@ -157,6 +157,10 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
         final content = event['content'] as String? ?? '';
         if (type == 'text' && content.isNotEmpty) {
           await _writeMissionMessage(text: content, isBot: true, isAlert: false);
+        } else if (type == 'alert' && content.isNotEmpty) {
+          await _writeMissionMessage(text: content, isBot: true, isAlert: true);
+          final cv = event['cv'] as Map<String, dynamic>?;
+          if (cv != null && mounted) _handleCvAlert(cv);
         }
       }
     } catch (e) {
@@ -238,6 +242,29 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
     );
   }
 
+  // ─── CV Alert Handler (shared by _sendCommand and _startAlertStream) ───────
+  void _handleCvAlert(Map<String, dynamic> cv) {
+    final img = _latestFrame;
+    final imgB64 = img != null ? base64Encode(img) : null;
+
+    if (img != null) {
+      setState(() => _localImageMessages.add(
+        _LocalImageMessage(imageBytes: img, createdAt: DateTime.now()),
+      ));
+    }
+
+    setState(() {
+      _suspiciousPoints.insert(0, _SuspiciousPoint(
+        number: _suspiciousPoints.length + 1,
+        matchScore: (cv['match_score'] as num?)?.toInt() ?? 0,
+        colorMatch: cv['color_match'] as bool? ?? false,
+        alertType: cv['alert_type'] as String? ?? 'candidate',
+        detectedAt: DateTime.now(),
+        capturedImageBase64: imgB64,
+      ));
+    });
+  }
+
   // ─── Phase 5 — Alert Stream ───────────────────────────────────────────────
   void _startAlertStream() {
     _alertSub?.cancel();
@@ -256,25 +283,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
         }
 
         if (cv != null && mounted) {
-          final img = _latestFrame;
-          final imgB64 = img != null ? base64Encode(img) : null;
-
-          if (img != null) {
-            setState(() => _localImageMessages.add(
-              _LocalImageMessage(imageBytes: img, createdAt: DateTime.now()),
-            ));
-          }
-
-          setState(() {
-            _suspiciousPoints.insert(0, _SuspiciousPoint(
-              number: _suspiciousPoints.length + 1,
-              matchScore: (cv['match_score'] as num?)?.toInt() ?? 0,
-              colorMatch: cv['color_match'] as bool? ?? false,
-              alertType: cv['alert_type'] as String? ?? 'candidate',
-              detectedAt: DateTime.now(),
-              capturedImageBase64: imgB64,
-            ));
-          });
+          _handleCvAlert(cv);
         }
       },
       onError: (_) {
