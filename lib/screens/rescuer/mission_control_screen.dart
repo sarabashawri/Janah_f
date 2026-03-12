@@ -872,9 +872,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                         height: 200,
                         child: _MjpegView(
                           url: FlaskApiService.videoFeedUrl,
-                          onFrame: (f) {
-                            if (mounted) setState(() => _latestFrame = f);
-                          },
+                          onFrame: (f) { _latestFrame = f; },
                         ),
                       ),
                     ),
