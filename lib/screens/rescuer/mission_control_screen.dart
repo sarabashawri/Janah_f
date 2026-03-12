@@ -166,9 +166,19 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
           try {
             final bytes = base64Decode(b64);
             if (mounted) {
-              setState(() => _localImageMessages.add(
-                _LocalImageMessage(imageBytes: bytes, createdAt: DateTime.now()),
-              ));
+              setState(() {
+                _localImageMessages.add(
+                  _LocalImageMessage(imageBytes: bytes, createdAt: DateTime.now()),
+                );
+                _suspiciousPoints.insert(0, _SuspiciousPoint(
+                  number: _suspiciousPoints.length + 1,
+                  matchScore: 0,
+                  colorMatch: false,
+                  alertType: 'manual',
+                  detectedAt: DateTime.now(),
+                  capturedImageBase64: b64,
+                ));
+              });
             }
           } catch (_) {}
         }
@@ -680,42 +690,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                     ),
                     const Divider(height: 1),
 
-                    // Captured alert images (local, not stored in Firestore)
-                    if (_localImageMessages.isNotEmpty)
-                      SizedBox(
-                        height: 100,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.all(8),
-                          itemCount: _localImageMessages.length,
-                          itemBuilder: (_, i) {
-                            final msg = _localImageMessages[i];
-                            return Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: Column(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.memory(
-                                      msg.imageBytes,
-                                      width: 72,
-                                      height: 72,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  const Text('لقطة',
-                                      style: TextStyle(
-                                          fontSize: 9,
-                                          color: Color(0xFF9E9E9E))),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-
-                    // Messages — Firebase StreamBuilder
+                    // Messages — Firebase + local images merged by time
                     SizedBox(
                       height: 220,
                       child: StreamBuilder<QuerySnapshot>(
@@ -725,31 +700,48 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                             .orderBy('createdAt')
                             .snapshots(),
                         builder: (context, snapshot) {
-                          if (!snapshot.hasData ||
-                              snapshot.data!.docs.isEmpty) {
+                          final docs = snapshot.hasData ? snapshot.data!.docs : [];
+                          final List<_ChatItem> items = [
+                            ...docs.map((d) {
+                              final data = d.data() as Map<String, dynamic>;
+                              final ts = data['createdAt'];
+                              final time = ts is Timestamp ? ts.toDate() : DateTime.now();
+                              return _ChatItem.message(
+                                text: data['text'] ?? '',
+                                isBot: data['isBot'] ?? false,
+                                isAlert: data['isAlert'] ?? false,
+                                time: time,
+                              );
+                            }),
+                            ..._localImageMessages.map((img) => _ChatItem.image(
+                              imageBytes: img.imageBytes,
+                              time: img.createdAt,
+                            )),
+                          ]..sort((a, b) => a.time.compareTo(b.time));
+
+                          if (items.isEmpty) {
                             return const Center(
                               child: Text(
                                 'الطائرة جاهزة ✅\nأرسل أمرك الأول',
-                                style: TextStyle(
-                                    color: Color(0xFF9E9E9E), fontSize: 13),
+                                style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 13),
                                 textAlign: TextAlign.center,
                               ),
                             );
                           }
-                          final docs = snapshot.data!.docs;
-                          WidgetsBinding.instance.addPostFrameCallback(
-                              (_) => _scrollToBottom());
+                          WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
                           return ListView.builder(
                             controller: _chatScrollController,
                             padding: const EdgeInsets.all(12),
-                            itemCount: docs.length,
+                            itemCount: items.length,
                             itemBuilder: (_, i) {
-                              final d =
-                                  docs[i].data() as Map<String, dynamic>;
+                              final item = items[i];
+                              if (item.imageBytes != null) {
+                                return _buildImageBubble(item.imageBytes!);
+                              }
                               return _buildChatBubble(_ChatMessage(
-                                text: d['text'] ?? '',
-                                isBot: d['isBot'] ?? false,
-                                isAlert: d['isAlert'] ?? false,
+                                text: item.text ?? '',
+                                isBot: item.isBot,
+                                isAlert: item.isAlert,
                               ));
                             },
                           );
@@ -1021,7 +1013,9 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                     style: const TextStyle(fontSize: 11, color: Color(0xFF757575))),
                 const SizedBox(height: 2),
                 Text(
-                  'تطابق الوجه: ${point.matchScore}% · الملابس: ${point.colorMatch ? "✓" : "✗"}',
+                  point.alertType == 'manual'
+                      ? 'التقاط يدوي 📷'
+                      : 'تطابق الوجه: ${point.matchScore}% · الملابس: ${point.colorMatch ? "✓" : "✗"}',
                   style: const TextStyle(fontSize: 11, color: Color(0xFF757575)),
                 ),
               ],
@@ -1068,6 +1062,19 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageBubble(Uint8List bytes) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8, right: 4, left: 40),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.memory(bytes, width: 180, height: 160, fit: BoxFit.cover),
         ),
       ),
     );
@@ -1161,6 +1168,22 @@ class _LocalImageMessage {
   final Uint8List imageBytes;
   final DateTime createdAt;
   _LocalImageMessage({required this.imageBytes, required this.createdAt});
+}
+
+class _ChatItem {
+  final String? text;
+  final bool isBot;
+  final bool isAlert;
+  final Uint8List? imageBytes;
+  final DateTime time;
+
+  _ChatItem._({this.text, required this.isBot, required this.isAlert, this.imageBytes, required this.time});
+
+  factory _ChatItem.message({required String text, required bool isBot, required bool isAlert, required DateTime time}) =>
+      _ChatItem._(text: text, isBot: isBot, isAlert: isAlert, time: time);
+
+  factory _ChatItem.image({required Uint8List imageBytes, required DateTime time}) =>
+      _ChatItem._(imageBytes: imageBytes, isBot: true, isAlert: false, time: time);
 }
 
 class _ChatMessage {
