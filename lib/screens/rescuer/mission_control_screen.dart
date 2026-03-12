@@ -161,6 +161,16 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
           await _writeMissionMessage(text: content, isBot: true, isAlert: true);
           final cv = event['cv'] as Map<String, dynamic>?;
           if (cv != null && mounted) _handleCvAlert(cv);
+        } else if (type == 'image' && content.isNotEmpty) {
+          final b64 = content.contains(',') ? content.split(',').last : content;
+          try {
+            final bytes = base64Decode(b64);
+            if (mounted) {
+              setState(() => _localImageMessages.add(
+                _LocalImageMessage(imageBytes: bytes, createdAt: DateTime.now()),
+              ));
+            }
+          } catch (_) {}
         }
       }
     } catch (e) {
