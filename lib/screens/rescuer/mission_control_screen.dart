@@ -270,7 +270,8 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
   // ─── CV Alert Handler (shared by _sendCommand and _startAlertStream) ───────
   void _handleCvAlert(Map<String, dynamic> cv) {
     final img = _latestFrame;
-    final imgB64 = img != null ? base64Encode(img) : null;
+    final snapshotFromCv = cv['snapshot'] as String?;
+    final imgB64 = img != null ? base64Encode(img) : snapshotFromCv;
 
     if (img != null) {
       setState(() => _localImageMessages.add(

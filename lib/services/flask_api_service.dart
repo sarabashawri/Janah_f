@@ -89,6 +89,7 @@ class FlaskApiService {
     // Handle both Guardian ('description') and Rescuer ('extraDescription')
     req.fields['description'] =
         ((report['description'] ?? report['extraDescription']) as String?) ?? '';
+    req.fields['report_id'] = reportId;
 
     // 4. Send and await response
     final streamedResponse =
