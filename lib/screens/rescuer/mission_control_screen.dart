@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
-import 'package:camera/camera.dart';
 import 'package:janah_complete/services/flask_api_service.dart';
 import 'package:janah_complete/screens/rescuer/Verification_screen.dart';
 
@@ -12,7 +11,7 @@ import 'package:janah_complete/screens/rescuer/Verification_screen.dart';
 enum _SetupPhase { idle, checking, uploading, polling, ready, error }
 
 // ─── Video Source ─────────────────────────────────────────────────────────────
-enum VideoSource { tello, mobileFront, mobileBack }
+enum VideoSource { laptop, tello }
 
 class MissionControlScreen extends StatefulWidget {
   final String reportId;
@@ -32,7 +31,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
   String _errorMessage = '';
   int _pollSeconds = 0;
   bool _isSending = false;
-  VideoSource _videoSource = VideoSource.tello;
+  VideoSource _videoSource = VideoSource.laptop;
   final List<_SuspiciousPoint> _suspiciousPoints = [];
   final List<_LocalImageMessage> _localImageMessages = [];
   Uint8List? _latestFrame;
@@ -465,6 +464,16 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                 children: [
                   Expanded(
                     child: _SourceCard(
+                      icon: Icons.laptop,
+                      label: 'محاكاة',
+                      sublabel: 'كاميرا اللابتوب',
+                      selected: _videoSource == VideoSource.laptop,
+                      onTap: () => setState(() => _videoSource = VideoSource.laptop),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _SourceCard(
                       icon: Icons.flight,
                       label: 'مهمة حقيقية',
                       sublabel: 'Tello Drone',
@@ -472,39 +481,8 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                       onTap: () => setState(() => _videoSource = VideoSource.tello),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _SourceCard(
-                      icon: Icons.smartphone,
-                      label: 'محاكاة',
-                      sublabel: 'كاميرا الجوال',
-                      selected: _videoSource != VideoSource.tello,
-                      onTap: () => setState(() => _videoSource = VideoSource.mobileFront),
-                    ),
-                  ),
                 ],
               ),
-
-              // ── Front / Back toggle (only when simulation) ────────
-              if (_videoSource != VideoSource.tello) ...[
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _CameraToggleChip(
-                      label: 'أمامية',
-                      selected: _videoSource == VideoSource.mobileFront,
-                      onTap: () => setState(() => _videoSource = VideoSource.mobileFront),
-                    ),
-                    const SizedBox(width: 8),
-                    _CameraToggleChip(
-                      label: 'خلفية',
-                      selected: _videoSource == VideoSource.mobileBack,
-                      onTap: () => setState(() => _videoSource = VideoSource.mobileBack),
-                    ),
-                  ],
-                ),
-              ],
 
               const SizedBox(height: 20),
               SizedBox(
@@ -931,11 +909,11 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                   children: [
                     Row(children: [
                       Icon(
-                        _videoSource == VideoSource.tello ? Icons.videocam : Icons.smartphone,
+                        _videoSource == VideoSource.tello ? Icons.flight : Icons.laptop,
                         color: _navy, size: 18),
                       const SizedBox(width: 8),
                       Text(
-                        _videoSource == VideoSource.tello ? 'بث مباشر من الدرون' : 'محاكاة 📱',
+                        _videoSource == VideoSource.tello ? 'بث مباشر من الدرون' : 'كاميرا اللابتوب',
                         style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                       const Spacer(),
                       _LiveBadge(),
@@ -946,12 +924,10 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                       child: SizedBox(
                         width: double.infinity,
                         height: 200,
-                        child: _videoSource == VideoSource.tello
-                          ? _MjpegView(
-                              url: FlaskApiService.videoFeedUrl,
-                              onFrame: (f) { _latestFrame = f; },
-                            )
-                          : _SimulationCameraView(source: _videoSource),
+                        child: _MjpegView(
+                          url: FlaskApiService.videoFeedUrl,
+                          onFrame: (f) { _latestFrame = f; },
+                        ),
                       ),
                     ),
                   ],
@@ -1549,131 +1525,3 @@ class _SourceCard extends StatelessWidget {
   }
 }
 
-class _CameraToggleChip extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-  const _CameraToggleChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const navy = Color(0xFF3D5A6C);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected ? navy : Colors.grey[200],
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(label,
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: selected ? Colors.white : Colors.grey[600])),
-      ),
-    );
-  }
-}
-
-// ─── Simulation Camera Widget ─────────────────────────────────────────────────
-
-class _SimulationCameraView extends StatefulWidget {
-  final VideoSource source;
-  const _SimulationCameraView({required this.source});
-
-  @override
-  State<_SimulationCameraView> createState() => _SimulationCameraViewState();
-}
-
-class _SimulationCameraViewState extends State<_SimulationCameraView> {
-  CameraController? _controller;
-  bool _initialized = false;
-  String? _errorMsg;
-
-  @override
-  void initState() {
-    super.initState();
-    _initCamera();
-  }
-
-  @override
-  void didUpdateWidget(_SimulationCameraView old) {
-    super.didUpdateWidget(old);
-    if (old.source != widget.source) {
-      _controller?.dispose();
-      _controller = null;
-      if (mounted) setState(() => _initialized = false);
-      _initCamera();
-    }
-  }
-
-  Future<void> _initCamera() async {
-    try {
-      final cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        if (mounted) setState(() => _errorMsg = 'لا توجد كاميرا متاحة');
-        return;
-      }
-      final isFront = widget.source == VideoSource.mobileFront;
-      final direction = isFront ? CameraLensDirection.front : CameraLensDirection.back;
-      final cam = cameras.firstWhere(
-        (c) => c.lensDirection == direction,
-        orElse: () => cameras.first,
-      );
-      final ctrl = CameraController(cam, ResolutionPreset.medium, enableAudio: false);
-      await ctrl.initialize();
-      if (mounted) {
-        setState(() {
-          _controller = ctrl;
-          _initialized = true;
-          _errorMsg = null;
-        });
-      } else {
-        ctrl.dispose();
-      }
-    } catch (e) {
-      if (mounted) setState(() => _errorMsg = 'خطأ في الكاميرا: $e');
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_errorMsg != null) {
-      return Container(
-        color: Colors.black,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.videocam_off, color: Colors.white54, size: 36),
-              const SizedBox(height: 8),
-              Text(_errorMsg!,
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
-                  textAlign: TextAlign.center),
-            ],
-          ),
-        ),
-      );
-    }
-    if (!_initialized || _controller == null) {
-      return Container(
-        color: Colors.black,
-        child: const Center(
-          child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2),
-        ),
-      );
-    }
-    return CameraPreview(_controller!);
-  }
-}
