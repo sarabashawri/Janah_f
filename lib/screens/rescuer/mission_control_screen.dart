@@ -925,7 +925,9 @@ class _MissionControlScreenState extends State<MissionControlScreen> {
                         width: double.infinity,
                         height: 200,
                         child: _MjpegView(
-                          url: FlaskApiService.videoFeedUrl,
+                          url: _videoSource == VideoSource.laptop
+                              ? FlaskApiService.laptopFeedUrl
+                              : FlaskApiService.videoFeedUrl,
                           onFrame: (f) { _latestFrame = f; },
                         ),
                       ),
@@ -1261,6 +1263,16 @@ class _MjpegViewState extends State<_MjpegView> {
   void initState() {
     super.initState();
     _connect();
+  }
+
+  @override
+  void didUpdateWidget(_MjpegView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      _sub?.cancel();
+      _client?.close();
+      _connect();
+    }
   }
 
   Future<void> _connect() async {

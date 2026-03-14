@@ -208,8 +208,11 @@ class FlaskApiService {
   // Video Feed URL
   // ─────────────────────────────────────────────
 
-  /// MJPEG live video feed URL from the drone camera.
+  /// MJPEG live video feed — drone camera
   static String get videoFeedUrl => '$baseUrl/robot-pov/sim_tello';
+
+  /// MJPEG live video feed — laptop webcam (cv2.VideoCapture(0))
+  static String get laptopFeedUrl => '$baseUrl/robot-pov/laptop';
 
   // ─────────────────────────────────────────────
   // Phase 6 — Target Confirmation
