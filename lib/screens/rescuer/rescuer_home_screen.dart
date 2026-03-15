@@ -158,9 +158,9 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   stream: _db.collection('reports').snapshots(),
                   builder: (context, snap) {
                     final docs = snap.data?.docs ?? [];
-                    final active = docs.where((d) => (d.data() as Map)['status'] == 'active').length;
-                    final inProgress = docs.where((d) => (d.data() as Map)['status'] == 'inProgress').length;
-                    final found = docs.where((d) => (d.data() as Map)['status'] == 'found').length;
+                    final active = docs.where((d) => ['pending', 'accepted', 'searching'].contains((d.data() as Map)['status'])).length;
+                    final inProgress = docs.where((d) => (d.data() as Map)['status'] == 'searching').length;
+                    final found = docs.where((d) => (d.data() as Map)['status'] == 'matchFound').length;
                     final total = docs.length;
                     final rate = total == 0 ? '0%' : '${((found / total) * 100).toInt()}%';
                     return Container(
@@ -224,7 +224,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       ),
                       const SizedBox(height: 8),
                       StreamBuilder<QuerySnapshot>(
-                        stream: _db.collection('reports').where('status', isEqualTo: 'active').orderBy('createdAt', descending: true).limit(3).snapshots(),
+                        stream: _db.collection('reports').where('status', whereIn: ['pending', 'accepted', 'searching']).orderBy('createdAt', descending: true).limit(3).snapshots(),
                         builder: (context, snap) {
                           if (snap.connectionState == ConnectionState.waiting) {
                             return const Center(child: CircularProgressIndicator(color: Color(0xFF3D5A6C)));

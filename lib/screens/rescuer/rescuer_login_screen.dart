@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RescuerLoginScreen extends StatefulWidget {
   const RescuerLoginScreen({super.key});
@@ -21,14 +23,47 @@ class _RescuerLoginScreenState extends State<RescuerLoginScreen> {
     super.dispose();
   }
 
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) {
-        setState(() => _isLoading = false);
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    try {
+      final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(cred.user!.uid)
+          .get();
+      final type = doc.data()?['user_type'];
+      if (!mounted) return;
+      if (type == 'rescuer') {
         Navigator.of(context).pushReplacementNamed('/rescuer/home');
+      } else {
+        await FirebaseAuth.instance.signOut();
+        _showError('هذا الحساب ليس لفريق الإنقاذ');
       }
+    } on FirebaseAuthException catch (e) {
+      final msg = switch (e.code) {
+        'user-not-found' => 'البريد الإلكتروني غير مسجل',
+        'wrong-password' => 'كلمة المرور غير صحيحة',
+        'invalid-email' => 'البريد الإلكتروني غير صالح',
+        'invalid-credential' => 'بيانات الدخول غير صحيحة',
+        'too-many-requests' => 'محاولات كثيرة، حاول لاحقاً',
+        _ => 'حدث خطأ: ${e.message}',
+      };
+      _showError(msg);
+    } catch (_) {
+      _showError('حدث خطأ غير متوقع، حاول مجدداً');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

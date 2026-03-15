@@ -44,7 +44,8 @@ class MissionDetailsScreen extends StatelessWidget {
             final clothingColor   = data['clothingColor']   ?? '';
             final guardianName    = data['guardianName']    ?? '';
             final guardianPhone   = data['guardianPhone']   ?? '';
-            final status          = data['status']          ?? 'active';
+            final status          = data['status']          ?? 'pending';
+            final guardianId      = data['guardianId']      ?? '';
             final lat             = (data['latitude']  as num?)?.toDouble() ?? 24.7136;
             final lng             = (data['longitude'] as num?)?.toDouble() ?? 46.6753;
             final childPos        = LatLng(lat, lng);
@@ -191,7 +192,11 @@ class MissionDetailsScreen extends StatelessWidget {
                         // تحديث الحالة
                         _SectionCard(
                           title: 'تحديث الحالة',
-                          child: _StatusButtons(reportId: reportId, currentStatus: status),
+                          child: _StatusButtons(
+                            reportId: reportId,
+                            currentStatus: status,
+                            guardianId: guardianId,
+                          ),
                         ),
 
                         const SizedBox(height: 14),
@@ -244,53 +249,145 @@ class MissionDetailsScreen extends StatelessWidget {
 
 // ── أزرار تحديث الحالة ──
 class _StatusButtons extends StatelessWidget {
-  const _StatusButtons({required this.reportId, required this.currentStatus});
+  const _StatusButtons({
+    required this.reportId,
+    required this.currentStatus,
+    required this.guardianId,
+  });
   final String reportId;
   final String currentStatus;
+  final String guardianId;
 
-  Future<void> _update(BuildContext context, String newStatus) async {
-    await FirebaseFirestore.instance.collection('reports').doc(reportId).update({'status': newStatus});
+  Future<void> _updateStatus(String newStatus) async {
+    await FirebaseFirestore.instance
+        .collection('reports')
+        .doc(reportId)
+        .update({'status': newStatus});
+  }
+
+  Future<void> _sendNotification(String type, String title, String description) async {
+    if (guardianId.isEmpty) return;
+    await FirebaseFirestore.instance.collection('notifications').add({
+      'guardianId': guardianId,
+      'type': type,
+      'title': title,
+      'description': description,
+      'reportId': reportId,
+      'isRead': false,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> _accept(BuildContext context) async {
+    await _updateStatus('accepted');
+    await _sendNotification('reportAccepted', 'تم قبول بلاغك', 'تم قبول بلاغك من قبل فريق الإنقاذ');
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم تحديث الحالة'), backgroundColor: const Color(0xFF3D5A6C)),
+        const SnackBar(content: Text('تم قبول البلاغ'), backgroundColor: Color(0xFF16C47F)),
+      );
+    }
+  }
+
+  Future<void> _reject(BuildContext context) async {
+    await _updateStatus('resolved');
+    await _sendNotification('reportRejected', 'تم رفض بلاغك', 'تعذر قبول البلاغ من قبل فريق الإنقاذ');
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم رفض البلاغ'), backgroundColor: Color(0xFFEF5350)),
+      );
+    }
+  }
+
+  Future<void> _startSearch(BuildContext context) async {
+    await _updateStatus('searching');
+    await _sendNotification('missionStarted', 'بدأ البحث', 'بدأ فريق الإنقاذ في البحث عن طفلك');
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم بدء البحث'), backgroundColor: Color(0xFF2196F3)),
+      );
+    }
+  }
+
+  Future<void> _closeReport(BuildContext context) async {
+    await _updateStatus('resolved');
+    await _sendNotification('reportResolved', 'تم إغلاق البلاغ', 'تم إغلاق البلاغ من قبل فريق الإنقاذ');
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم إغلاق البلاغ'), backgroundColor: Color(0xFF9E9E9E)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: [
-        _StatusBtn(label: 'نشط',          status: 'active',     current: currentStatus, color: const Color(0xFFEF5350), onTap: () => _update(context, 'active')),
-        _StatusBtn(label: 'قيد المتابعة', status: 'inProgress', current: currentStatus, color: const Color(0xFF2196F3), onTap: () => _update(context, 'inProgress')),
-        _StatusBtn(label: 'تم العثور',    status: 'found',      current: currentStatus, color: const Color(0xFF00D995), onTap: () => _update(context, 'found')),
-        _StatusBtn(label: 'مغلق',         status: 'closed',     current: currentStatus, color: const Color(0xFF9E9E9E), onTap: () => _update(context, 'closed')),
-      ],
-    );
+    if (currentStatus == 'pending') {
+      return Row(
+        children: [
+          Expanded(
+            child: _ActionButton(
+              label: 'قبول البلاغ',
+              icon: Icons.check,
+              color: const Color(0xFF16C47F),
+              onTap: () => _accept(context),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _ActionButton(
+              label: 'رفض البلاغ',
+              icon: Icons.close,
+              color: const Color(0xFFEF5350),
+              onTap: () => _reject(context),
+            ),
+          ),
+        ],
+      );
+    } else if (currentStatus == 'accepted') {
+      return _ActionButton(
+        label: 'ابدأ البحث',
+        icon: Icons.search,
+        color: const Color(0xFF2196F3),
+        onTap: () => _startSearch(context),
+      );
+    } else if (currentStatus == 'matchFound') {
+      return _ActionButton(
+        label: 'إغلاق البلاغ',
+        icon: Icons.lock_outline,
+        color: const Color(0xFF9E9E9E),
+        onTap: () => _closeReport(context),
+      );
+    }
+    return const SizedBox.shrink();
   }
 }
 
-class _StatusBtn extends StatelessWidget {
-  const _StatusBtn({required this.label, required this.status, required this.current, required this.color, required this.onTap});
-  final String label, status, current;
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+  final String label;
+  final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final selected = status == current;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? color : color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color, width: 1.5),
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: ElevatedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, color: Colors.white, size: 20),
+        label: Text(label,
+            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          elevation: 0,
         ),
-        child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: selected ? Colors.white : color)),
       ),
     );
   }
@@ -411,21 +508,23 @@ class _StatusBadge extends StatelessWidget {
 
   String get label {
     switch (status) {
-      case 'active':     return 'نشط';
-      case 'inProgress': return 'قيد المتابعة';
-      case 'found':      return 'تم العثور';
-      case 'closed':     return 'مغلق';
-      default:           return 'نشط';
+      case 'pending':    return 'قيد الانتظار';
+      case 'accepted':   return 'تم القبول';
+      case 'searching':  return 'جاري البحث';
+      case 'matchFound': return 'تم العثور';
+      case 'resolved':   return 'تم الإغلاق';
+      default:           return 'قيد الانتظار';
     }
   }
 
   Color get color {
     switch (status) {
-      case 'active':     return const Color(0xFFEF5350);
-      case 'inProgress': return const Color(0xFF2196F3);
-      case 'found':      return const Color(0xFF00D995);
-      case 'closed':     return const Color(0xFF9E9E9E);
-      default:           return const Color(0xFFEF5350);
+      case 'pending':    return const Color(0xFFFF9800);
+      case 'accepted':   return const Color(0xFF2196F3);
+      case 'searching':  return const Color(0xFF2196F3);
+      case 'matchFound': return const Color(0xFF00D995);
+      case 'resolved':   return const Color(0xFF9E9E9E);
+      default:           return const Color(0xFFFF9800);
     }
   }
 

@@ -311,7 +311,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                               stream: FirebaseFirestore.instance
                                   .collection('reports')
                                   .where('guardianId', isEqualTo: _userId)
-                                  .where('status', isEqualTo: 'active')
+                                  .where('status', whereIn: ['pending', 'accepted', 'searching'])
                                   .limit(1)
                                   .snapshots(),
                               builder: (context, snapshot) {

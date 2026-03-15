@@ -135,12 +135,12 @@ class _MissionControlScreenState extends State<MissionControlScreen>
       return;
     }
 
-    // Update report status to inProgress in Firebase
+    // Update report status to searching in Firebase
     try {
       await FirebaseFirestore.instance
           .collection('reports')
           .doc(widget.reportId)
-          .update({'status': 'inProgress'});
+          .update({'status': 'searching'});
     } catch (_) {
       // Non-critical — continue even if status update fails
     }

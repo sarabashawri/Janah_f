@@ -151,7 +151,7 @@ class _RescuerCreateReportScreenState extends State<RescuerCreateReportScreen> {
         'longitude': _selectedLocation!.longitude,
         'disappearanceTime': _selectedDateTime!.toIso8601String(),
         'imageBase64': imageBase64,
-        'status': 'active',
+        'status': 'accepted',
         'createdAt': FieldValue.serverTimestamp(),
         'createdBy': 'rescuer',
       });

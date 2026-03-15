@@ -33,28 +33,43 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
 
   IconData _icon(String type) {
     switch (type) {
-      case 'newReport': return Icons.error_outline;
-      case 'found':     return Icons.check_circle_outline;
-      case 'location':  return Icons.location_on_outlined;
-      default:          return Icons.notifications_outlined;
+      case 'newReport':     return Icons.error_outline;
+      case 'childFound':
+      case 'found':         return Icons.check_circle_outline;
+      case 'reportAccepted':return Icons.thumb_up_outlined;
+      case 'reportRejected':return Icons.thumb_down_outlined;
+      case 'missionStarted':return Icons.search;
+      case 'reportResolved':return Icons.lock_outline;
+      case 'location':      return Icons.location_on_outlined;
+      default:              return Icons.notifications_outlined;
     }
   }
 
   Color _iconColor(String type) {
     switch (type) {
-      case 'newReport': return const Color(0xFFEF5350);
-      case 'found':     return const Color(0xFF00D995);
-      case 'location':  return const Color(0xFF2196F3);
-      default:          return const Color(0xFF9E9E9E);
+      case 'newReport':      return const Color(0xFFEF5350);
+      case 'childFound':
+      case 'found':          return const Color(0xFF00D995);
+      case 'reportAccepted':
+      case 'missionStarted': return const Color(0xFF2196F3);
+      case 'reportRejected': return const Color(0xFFEF5350);
+      case 'reportResolved': return const Color(0xFF9E9E9E);
+      case 'location':       return const Color(0xFF2196F3);
+      default:               return const Color(0xFF9E9E9E);
     }
   }
 
   Color _iconBg(String type) {
     switch (type) {
-      case 'newReport': return const Color(0xFFFFEBEE);
-      case 'found':     return const Color(0xFFE8F5E9);
-      case 'location':  return const Color(0xFFE3F2FD);
-      default:          return const Color(0xFFF5F5F5);
+      case 'newReport':      return const Color(0xFFFFEBEE);
+      case 'childFound':
+      case 'found':          return const Color(0xFFE8F5E9);
+      case 'reportAccepted':
+      case 'missionStarted': return const Color(0xFFE3F2FD);
+      case 'reportRejected': return const Color(0xFFFFEBEE);
+      case 'reportResolved': return const Color(0xFFF5F5F5);
+      case 'location':       return const Color(0xFFE3F2FD);
+      default:               return const Color(0xFFF5F5F5);
     }
   }
 

@@ -165,7 +165,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
         'longitude': _selectedLocation!.longitude,
         'disappearanceTime': _selectedDateTime!.toIso8601String(),
         'imageBase64': imageBase64,
-        'status': 'active',
+        'status': 'pending',
         'createdAt': FieldValue.serverTimestamp(),
       });
 

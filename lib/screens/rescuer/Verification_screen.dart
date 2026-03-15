@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:janah_complete/services/flask_api_service.dart';
 
 class VerificationScreen extends StatefulWidget {
@@ -51,7 +52,35 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   Navigator.pop(context);
                   await FlaskApiService.confirmTarget();
                   if (widget.reportId.isNotEmpty) {
-                    await FirebaseFirestore.instance.collection('reports').doc(widget.reportId).update({'status': 'found'});
+                    final reportRef = FirebaseFirestore.instance
+                        .collection('reports')
+                        .doc(widget.reportId);
+                    await reportRef.update({'status': 'matchFound'});
+
+                    // Fetch guardianId and send notification
+                    final reportDoc = await reportRef.get();
+                    final guardianId = (reportDoc.data() as Map<String, dynamic>?)?['guardianId'] ?? '';
+                    if (guardianId.isNotEmpty) {
+                      await FirebaseFirestore.instance.collection('notifications').add({
+                        'guardianId': guardianId,
+                        'type': 'childFound',
+                        'title': 'تم العثور على طفلك',
+                        'description': 'تم التحقق من مطابقة الوجه',
+                        'reportId': widget.reportId,
+                        'isRead': false,
+                        'createdAt': FieldValue.serverTimestamp(),
+                      });
+                    }
+
+                    // Validation log
+                    await FirebaseFirestore.instance.collection('validation_logs').add({
+                      'reportId': widget.reportId,
+                      'decision': 'confirmed',
+                      'matchScore': widget.matchScore,
+                      'colorMatch': widget.colorMatch,
+                      'supervisorId': FirebaseAuth.instance.currentUser?.uid,
+                      'timestamp': FieldValue.serverTimestamp(),
+                    });
                   }
                   if (mounted) Navigator.pop(context, 'confirmed');
                 },
@@ -81,6 +110,16 @@ class _VerificationScreenState extends State<VerificationScreen> {
               onPressed: () async {
                 Navigator.pop(context);
                 await FlaskApiService.rejectTarget();
+                if (widget.reportId.isNotEmpty) {
+                  await FirebaseFirestore.instance.collection('validation_logs').add({
+                    'reportId': widget.reportId,
+                    'decision': 'rejected',
+                    'matchScore': widget.matchScore,
+                    'colorMatch': widget.colorMatch,
+                    'supervisorId': FirebaseAuth.instance.currentUser?.uid,
+                    'timestamp': FieldValue.serverTimestamp(),
+                  });
+                }
                 if (mounted) Navigator.pop(context, 'rejected');
               },
               style: ElevatedButton.styleFrom(backgroundColor: _red),

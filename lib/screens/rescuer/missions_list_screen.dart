@@ -34,9 +34,9 @@ class _MissionsListScreenState extends State<MissionsListScreen>
   Stream<QuerySnapshot> _stream(String type) {
     final col = FirebaseFirestore.instance.collection('reports');
     if (type == 'active') {
-      return col.where('status', isEqualTo: 'active').orderBy('createdAt', descending: true).snapshots();
+      return col.where('status', whereIn: ['pending', 'accepted', 'searching']).orderBy('createdAt', descending: true).snapshots();
     } else if (type == 'closed') {
-      return col.where('status', whereIn: ['found', 'closed']).orderBy('createdAt', descending: true).snapshots();
+      return col.where('status', whereIn: ['matchFound', 'resolved']).orderBy('createdAt', descending: true).snapshots();
     }
     return col.orderBy('createdAt', descending: true).snapshots();
   }
@@ -173,8 +173,8 @@ class _MissionsListScreenState extends State<MissionsListScreen>
           itemCount: docs.length,
           itemBuilder: (context, index) {
             final data = docs[index].data() as Map<String, dynamic>;
-            final status = data['status'] ?? 'active';
-            final isActive = status == 'active' || status == 'inProgress';
+            final status = data['status'] ?? 'pending';
+            final isActive = status == 'pending' || status == 'accepted' || status == 'searching';
             return _MissionCard(
               reportId: docs[index].id,
               childName: data['childName'] ?? 'غير محدد',
@@ -216,21 +216,23 @@ class _MissionCard extends StatelessWidget {
 
   String get _statusLabel {
     switch (status) {
-      case 'active': return 'نشط';
-      case 'inProgress': return 'قيد المتابعة';
-      case 'found': return 'تم العثور';
-      case 'closed': return 'مغلق';
-      default: return 'نشط';
+      case 'pending':    return 'قيد الانتظار';
+      case 'accepted':   return 'تم القبول';
+      case 'searching':  return 'جاري البحث';
+      case 'matchFound': return 'تم العثور';
+      case 'resolved':   return 'تم الإغلاق';
+      default:           return 'قيد الانتظار';
     }
   }
 
   Color get _statusColor {
     switch (status) {
-      case 'active': return const Color(0xFFEF5350);
-      case 'inProgress': return const Color(0xFF2196F3);
-      case 'found': return const Color(0xFF00D995);
-      case 'closed': return const Color(0xFF9E9E9E);
-      default: return const Color(0xFFEF5350);
+      case 'pending':    return const Color(0xFFFF9800);
+      case 'accepted':   return const Color(0xFF2196F3);
+      case 'searching':  return const Color(0xFF2196F3);
+      case 'matchFound': return const Color(0xFF00D995);
+      case 'resolved':   return const Color(0xFF9E9E9E);
+      default:           return const Color(0xFFFF9800);
     }
   }
 

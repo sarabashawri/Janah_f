@@ -66,17 +66,9 @@ class ReportDetailsScreen extends StatelessWidget {
                     }
 
                     final data = snapshot.data!.data() as Map<String, dynamic>;
-                    final status = data['status'] ?? 'active';
-                    final statusColor = status == 'active'
-                        ? const Color(0xFF00D995)
-                        : status == 'found'
-                            ? const Color(0xFF2196F3)
-                            : const Color(0xFFFF5252);
-                    final statusText = status == 'active'
-                        ? 'جاري البحث'
-                        : status == 'found'
-                            ? 'تم العثور'
-                            : 'مغلق';
+                    final status = data['status'] ?? 'pending';
+                    final statusColor = _statusColor(status);
+                    final statusText = _statusLabel(status);
 
                     return SingleChildScrollView(
                       padding: const EdgeInsets.all(24),
@@ -170,29 +162,39 @@ class ReportDetailsScreen extends StatelessWidget {
                                   time: _timeAgo(data['createdAt']),
                                   icon: Icons.receipt_long,
                                   color: const Color(0xFF9E9E9E),
-                                  isLast: status == 'active',
+                                  isLast: status == 'pending',
                                 ),
-                                if (status != 'active') ...[
+                                if (status != 'pending') ...[
+                                  _buildTimelineItem(
+                                    title: 'تم القبول',
+                                    description: 'تم قبول البلاغ من قبل فريق الإنقاذ',
+                                    time: '',
+                                    icon: Icons.check_circle_outline,
+                                    color: const Color(0xFF2196F3),
+                                    isLast: status == 'accepted',
+                                  ),
+                                ],
+                                if (status == 'searching' || status == 'matchFound' || status == 'resolved') ...[
                                   _buildTimelineItem(
                                     title: 'بدأ فريق الإنقاذ البحث',
                                     description: 'تم الموافقة على عملية البحث',
                                     time: '',
                                     icon: Icons.people,
                                     color: const Color(0xFF2196F3),
-                                    isLast: status == 'inProgress',
+                                    isLast: status == 'searching',
                                   ),
                                 ],
-                                if (status == 'found') ...[
+                                if (status == 'matchFound') ...[
                                   _buildTimelineItem(
                                     title: 'تم العثور على الطفل',
-                                    description: 'الطفل بحالة جيدة',
+                                    description: 'تم التحقق من مطابقة الوجه',
                                     time: '',
                                     icon: Icons.check_circle,
                                     color: const Color(0xFF00D995),
                                     isLast: true,
                                   ),
                                 ],
-                                if (status == 'closed') ...[
+                                if (status == 'resolved') ...[
                                   _buildTimelineItem(
                                     title: 'تم إغلاق البلاغ',
                                     description: 'تم إغلاق البلاغ بعد التحقق',
@@ -206,6 +208,44 @@ class ReportDetailsScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 24),
+
+                          // ── بطاقة المطابقة النهائية ──
+                          if (status == 'matchFound') ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8F5E9),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: const Color(0xFF00D995), width: 1.5),
+                              ),
+                              child: const Column(
+                                children: [
+                                  Icon(Icons.verified, color: Color(0xFF00D995), size: 40),
+                                  SizedBox(height: 12),
+                                  Text(
+                                    'تم التحقق من مطابقة الوجه',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF1B5E20),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'تواصل مع فريق الإنقاذ للتسليم',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Color(0xFF388E3C),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
                         ],
                       ),
                     );
@@ -217,6 +257,28 @@ class ReportDetailsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'pending':    return const Color(0xFFFF9800);
+      case 'accepted':   return const Color(0xFF2196F3);
+      case 'searching':  return const Color(0xFF2196F3);
+      case 'matchFound': return const Color(0xFF00D995);
+      case 'resolved':   return const Color(0xFF9E9E9E);
+      default:           return const Color(0xFFFF9800);
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'pending':    return 'قيد الانتظار';
+      case 'accepted':   return 'تم القبول';
+      case 'searching':  return 'جاري البحث';
+      case 'matchFound': return 'تم العثور';
+      case 'resolved':   return 'تم الإغلاق';
+      default:           return 'قيد الانتظار';
+    }
   }
 
   Widget _buildInfoRow({required IconData icon, required String label, required String value, bool isLast = false}) {

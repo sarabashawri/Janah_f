@@ -52,8 +52,8 @@ class _ReportsListScreenState extends State<ReportsListScreen>
                 builder: (context, snapshot) {
                   final docs = snapshot.data?.docs ?? [];
                   final total = docs.length;
-                  final active = docs.where((d) => (d.data() as Map)['status'] == 'active').length;
-                  final closed = docs.where((d) => (d.data() as Map)['status'] != 'active').length;
+                  final active = docs.where((d) => ['pending', 'accepted', 'searching'].contains((d.data() as Map)['status'])).length;
+                  final closed = docs.where((d) => ['matchFound', 'resolved'].contains((d.data() as Map)['status'])).length;
 
                   return Container(
                     width: double.infinity,
@@ -153,9 +153,9 @@ class _ReportsListScreenState extends State<ReportsListScreen>
         .orderBy('createdAt', descending: true);
 
     if (statusFilter == 'active') {
-      query = query.where('status', isEqualTo: 'active');
+      query = query.where('status', whereIn: ['pending', 'accepted', 'searching']);
     } else {
-      query = query.where('status', whereIn: ['closed', 'found', 'inProgress']);
+      query = query.where('status', whereIn: ['matchFound', 'resolved']);
     }
 
     return StreamBuilder<QuerySnapshot>(
@@ -187,17 +187,22 @@ class _ReportsListScreenState extends State<ReportsListScreen>
           itemBuilder: (context, index) {
             final doc = snapshot.data!.docs[index];
             final data = doc.data() as Map<String, dynamic>;
-            final status = data['status'] ?? 'active';
-            final statusColor = status == 'active'
+            final status = data['status'] ?? 'pending';
+            final statusColor = status == 'matchFound'
                 ? const Color(0xFF00D995)
-                : status == 'found'
+                : status == 'searching'
                     ? const Color(0xFF2196F3)
-                    : const Color(0xFFFF5252);
-            final statusText = status == 'active'
-                ? 'جاري البحث'
-                : status == 'found'
-                    ? 'تم العثور'
-                    : 'مغلق';
+                    : status == 'resolved'
+                        ? const Color(0xFF9E9E9E)
+                        : const Color(0xFFFF9800);
+            final statusText = switch (status) {
+              'pending'    => 'قيد الانتظار',
+              'accepted'   => 'تم القبول',
+              'searching'  => 'جاري البحث',
+              'matchFound' => 'تم العثور',
+              'resolved'   => 'تم الإغلاق',
+              _            => 'قيد الانتظار',
+            };
 
             return _buildReportCard(
               reportId: doc.id,

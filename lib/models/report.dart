@@ -1,4 +1,4 @@
-enum ReportStatus { active, inProgress, closed }
+enum ReportStatus { pending, accepted, searching, matchFound, resolved }
 
 class Report {
   final String id;
@@ -33,12 +33,16 @@ class Report {
 
   String get statusText {
     switch (status) {
-      case ReportStatus.active:
-        return 'نشط';
-      case ReportStatus.inProgress:
+      case ReportStatus.pending:
+        return 'قيد الانتظار';
+      case ReportStatus.accepted:
+        return 'تم القبول';
+      case ReportStatus.searching:
         return 'جاري البحث';
-      case ReportStatus.closed:
-        return 'مغلق';
+      case ReportStatus.matchFound:
+        return 'تم العثور';
+      case ReportStatus.resolved:
+        return 'تم الإغلاق';
     }
   }
 

@@ -19,7 +19,7 @@ class _RescuerMapScreenState extends State<RescuerMapScreen> {
 
   static const LatLng _defaultCenter = LatLng(24.7136, 46.6753);
 
-  final List<String> _filters = ['الكل', 'نشط', 'قيد المتابعة', 'تم العثور'];
+  final List<String> _filters = ['الكل', 'قيد الانتظار', 'جاري البحث', 'تم العثور'];
 
   @override
   void initState() {
@@ -33,9 +33,9 @@ class _RescuerMapScreenState extends State<RescuerMapScreen> {
     Query query = FirebaseFirestore.instance.collection('reports');
     if (_selectedFilter != 'الكل') {
       final statusMap = {
-        'نشط': 'active',
-        'قيد المتابعة': 'inProgress',
-        'تم العثور': 'found',
+        'قيد الانتظار': 'pending',
+        'جاري البحث': 'searching',
+        'تم العثور': 'matchFound',
       };
       query = query.where('status', isEqualTo: statusMap[_selectedFilter]);
     }
@@ -51,10 +51,10 @@ class _RescuerMapScreenState extends State<RescuerMapScreen> {
       if (lat == null || lng == null) continue;
 
       activeCount++;
-      final status = data['status'] ?? 'active';
-      final hue = status == 'found'
+      final status = data['status'] ?? 'pending';
+      final hue = status == 'matchFound'
           ? BitmapDescriptor.hueGreen
-          : status == 'inProgress'
+          : status == 'searching'
               ? BitmapDescriptor.hueAzure
               : BitmapDescriptor.hueRed;
 
