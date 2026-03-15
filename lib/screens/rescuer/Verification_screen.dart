@@ -55,32 +55,43 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     final reportRef = FirebaseFirestore.instance
                         .collection('reports')
                         .doc(widget.reportId);
+
+                    // 1. Fetch doc first → grab guardianId + previousStatus
+                    final reportDoc = await reportRef.get();
+                    final docData = reportDoc.data() as Map<String, dynamic>? ?? {};
+                    final guardianId = docData['guardianId'] as String? ?? '';
+                    final previousStatus = docData['status'] as String? ?? '';
+
+                    // 2. Update status
                     await reportRef.update({'status': 'matchFound'});
 
-                    // Fetch guardianId and send notification
-                    final reportDoc = await reportRef.get();
-                    final guardianId = (reportDoc.data() as Map<String, dynamic>?)?['guardianId'] ?? '';
-                    if (guardianId.isNotEmpty) {
-                      await FirebaseFirestore.instance.collection('notifications').add({
-                        'guardianId': guardianId,
-                        'type': 'childFound',
-                        'title': 'تم العثور على طفلك',
-                        'description': 'تم التحقق من مطابقة الوجه',
-                        'reportId': widget.reportId,
-                        'isRead': false,
-                        'createdAt': FieldValue.serverTimestamp(),
-                      });
-                    }
-
-                    // Validation log
+                    // 3. Write validation log (must persist even if notification fails)
                     await FirebaseFirestore.instance.collection('validation_logs').add({
                       'reportId': widget.reportId,
                       'decision': 'confirmed',
+                      'previousStatus': previousStatus,
+                      'newStatus': 'matchFound',
+                      'guardianId': guardianId,
                       'matchScore': widget.matchScore,
                       'colorMatch': widget.colorMatch,
                       'supervisorId': FirebaseAuth.instance.currentUser?.uid,
                       'timestamp': FieldValue.serverTimestamp(),
                     });
+
+                    // 4. Send notification — failure must NOT abort the operation
+                    if (guardianId.isNotEmpty) {
+                      try {
+                        await FirebaseFirestore.instance.collection('notifications').add({
+                          'guardianId': guardianId,
+                          'type': 'childFound',
+                          'title': 'تم العثور على طفلك',
+                          'description': 'تم التحقق من مطابقة الوجه',
+                          'reportId': widget.reportId,
+                          'isRead': false,
+                          'createdAt': FieldValue.serverTimestamp(),
+                        });
+                      } catch (_) {}
+                    }
                   }
                   if (mounted) Navigator.pop(context, 'confirmed');
                 },
@@ -111,9 +122,22 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 Navigator.pop(context);
                 await FlaskApiService.rejectTarget();
                 if (widget.reportId.isNotEmpty) {
+                  // Fetch guardianId + previousStatus for the log
+                  final reportDoc = await FirebaseFirestore.instance
+                      .collection('reports')
+                      .doc(widget.reportId)
+                      .get();
+                  final docData = reportDoc.data() as Map<String, dynamic>? ?? {};
+                  final guardianId = docData['guardianId'] as String? ?? '';
+                  final previousStatus = docData['status'] as String? ?? '';
+
+                  // status stays unchanged (rejected detection ≠ closed case)
                   await FirebaseFirestore.instance.collection('validation_logs').add({
                     'reportId': widget.reportId,
                     'decision': 'rejected',
+                    'previousStatus': previousStatus,
+                    'newStatus': previousStatus, // no change
+                    'guardianId': guardianId,
                     'matchScore': widget.matchScore,
                     'colorMatch': widget.colorMatch,
                     'supervisorId': FirebaseAuth.instance.currentUser?.uid,

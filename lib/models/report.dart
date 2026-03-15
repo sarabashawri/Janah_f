@@ -1,5 +1,20 @@
 enum ReportStatus { pending, accepted, searching, matchFound, resolved }
 
+extension ReportStatusX on ReportStatus {
+  /// Raw string written to Firestore.
+  String toFirestore() => name; // 'pending', 'accepted', 'searching', 'matchFound', 'resolved'
+
+  /// Parse a Firestore string — handles legacy values from old documents.
+  static ReportStatus fromFirestore(String? s) => switch (s) {
+    'pending'                    => ReportStatus.pending,
+    'accepted'                   => ReportStatus.accepted,
+    'searching' || 'inProgress'  => ReportStatus.searching,
+    'matchFound' || 'found'      => ReportStatus.matchFound,
+    'resolved'  || 'closed'      => ReportStatus.resolved,
+    _                            => ReportStatus.pending, // 'active' + unknowns
+  };
+}
+
 class Report {
   final String id;
   final String childName;

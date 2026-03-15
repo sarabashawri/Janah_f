@@ -34,9 +34,11 @@ class _MissionsListScreenState extends State<MissionsListScreen>
   Stream<QuerySnapshot> _stream(String type) {
     final col = FirebaseFirestore.instance.collection('reports');
     if (type == 'active') {
-      return col.where('status', whereIn: ['pending', 'accepted', 'searching']).orderBy('createdAt', descending: true).snapshots();
+      // include legacy values (active, inProgress) for backward compatibility with old Firestore docs
+      return col.where('status', whereIn: ['pending', 'accepted', 'searching', 'active', 'inProgress']).orderBy('createdAt', descending: true).snapshots();
     } else if (type == 'closed') {
-      return col.where('status', whereIn: ['matchFound', 'resolved']).orderBy('createdAt', descending: true).snapshots();
+      // include legacy values (found, closed) for backward compatibility
+      return col.where('status', whereIn: ['matchFound', 'resolved', 'found', 'closed']).orderBy('createdAt', descending: true).snapshots();
     }
     return col.orderBy('createdAt', descending: true).snapshots();
   }
