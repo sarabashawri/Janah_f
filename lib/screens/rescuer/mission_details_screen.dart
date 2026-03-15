@@ -187,17 +187,18 @@ class MissionDetailsScreen extends StatelessWidget {
                           ),
                         ),
 
-                        const SizedBox(height: 14),
 
-                        // تحديث الحالة
-                        _SectionCard(
-                          title: 'تحديث الحالة',
-                          child: _StatusButtons(
-                            reportId: reportId,
-                            currentStatus: status,
-                            guardianId: guardianId,
+                        if (['pending', 'accepted', 'matchFound'].contains(status)) ...[
+                          const SizedBox(height: 14),
+                          _SectionCard(
+                            title: 'تحديث الحالة',
+                            child: _StatusButtons(
+                              reportId: reportId,
+                              currentStatus: status,
+                              guardianId: guardianId,
+                            ),
                           ),
-                        ),
+                        ],
 
                         const SizedBox(height: 14),
 
