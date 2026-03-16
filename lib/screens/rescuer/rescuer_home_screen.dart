@@ -7,6 +7,7 @@ import 'rescuer_profile_screen.dart';
 import 'rescuer_notifications_screen.dart';
 import 'rescuer_map_screen.dart';
 import 'mission_details_screen.dart';
+import 'rescuer_create_report_screen.dart';
 
 class RescuerHomeScreen extends StatefulWidget {
   const RescuerHomeScreen({super.key});
@@ -150,6 +151,47 @@ class _HomeDashboardState extends State<HomeDashboard> {
               ),
             ),
 
+            // ── بلّغ عن الطفل المفقود ──
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3D5A6C),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('بلّغ عن الطفل المفقود',
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                            SizedBox(height: 4),
+                            Text('قم بتقديم بلاغ جديد للبحث عن طفل مفقود',
+                                style: TextStyle(fontSize: 12, color: Colors.white70)),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => const RescuerCreateReportScreen())),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF00D995),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text('بلّغ الآن', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
             // إحصائيات من Firestore
             SliverToBoxAdapter(
               child: Padding(
@@ -158,9 +200,18 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   stream: _db.collection('reports').snapshots(),
                   builder: (context, snap) {
                     final docs = snap.data?.docs ?? [];
-                    final active = docs.where((d) => ['pending', 'accepted', 'searching'].contains((d.data() as Map)['status'])).length;
-                    final inProgress = docs.where((d) => (d.data() as Map)['status'] == 'searching').length;
-                    final found = docs.where((d) => (d.data() as Map)['status'] == 'matchFound').length;
+                    final newReports = docs.where((d) {
+                      final s = (d.data() as Map)['status'];
+                      return s == 'pending' || s == 'active';
+                    }).length;
+                    final inProgress = docs.where((d) {
+                      final s = (d.data() as Map)['status'];
+                      return s == 'accepted' || s == 'searching' || s == 'inProgress';
+                    }).length;
+                    final found = docs.where((d) {
+                      final s = (d.data() as Map)['status'];
+                      return s == 'matchFound' || s == 'resolved' || s == 'found' || s == 'closed';
+                    }).length;
                     final total = docs.length;
                     final rate = total == 0 ? '0%' : '${((found / total) * 100).toInt()}%';
                     return Container(
@@ -180,7 +231,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              Expanded(child: _StatCard(title: 'بلاغات نشطة', count: '$active', icon: Icons.flag_rounded, color: const Color(0xFFEF5350))),
+                              Expanded(child: _StatCard(title: 'بلاغات جديدة', count: '$newReports', icon: Icons.flag_rounded, color: const Color(0xFFEF5350))),
                               const SizedBox(width: 10),
                               Expanded(child: _StatCard(title: 'قيد المتابعة', count: '$inProgress', icon: Icons.pending_actions, color: const Color(0xFF2196F3))),
                               const SizedBox(width: 10),
@@ -224,7 +275,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       ),
                       const SizedBox(height: 8),
                       StreamBuilder<QuerySnapshot>(
-                        stream: _db.collection('reports').where('status', whereIn: ['pending', 'accepted', 'searching']).orderBy('createdAt', descending: true).limit(3).snapshots(),
+                        stream: _db.collection('reports').where('status', whereIn: ['pending', 'accepted', 'searching', 'active', 'inProgress']).orderBy('createdAt', descending: true).limit(3).snapshots(),
                         builder: (context, snap) {
                           if (snap.connectionState == ConnectionState.waiting) {
                             return const Center(child: CircularProgressIndicator(color: Color(0xFF3D5A6C)));
