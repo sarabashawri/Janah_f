@@ -176,7 +176,6 @@ class _MissionsListScreenState extends State<MissionsListScreen>
           itemBuilder: (context, index) {
             final data = docs[index].data() as Map<String, dynamic>;
             final status = data['status'] ?? 'pending';
-            final isActive = status == 'pending' || status == 'accepted' || status == 'searching';
             return _MissionCard(
               reportId: docs[index].id,
               childName: data['childName'] ?? 'غير محدد',
@@ -184,7 +183,6 @@ class _MissionsListScreenState extends State<MissionsListScreen>
               description: data['description'] ?? '',
               timeAgo: _timeAgo(data['createdAt'] as Timestamp?),
               status: status,
-              isActive: isActive,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => MissionDetailsScreen(reportId: docs[index].id)),
@@ -205,12 +203,10 @@ class _MissionCard extends StatelessWidget {
     required this.description,
     required this.timeAgo,
     required this.status,
-    required this.isActive,
     required this.onTap,
   });
 
   final String reportId, childName, location, description, timeAgo, status;
-  final bool isActive;
   final VoidCallback onTap;
 
   static const Color _navy = Color(0xFF3D5A6C);
@@ -223,6 +219,11 @@ class _MissionCard extends StatelessWidget {
       case 'searching':  return 'جاري البحث';
       case 'matchFound': return 'تم العثور';
       case 'resolved':   return 'تم الإغلاق';
+      // legacy values
+      case 'active':     return 'قيد الانتظار';
+      case 'inProgress': return 'جاري البحث';
+      case 'found':      return 'تم العثور';
+      case 'closed':     return 'تم الإغلاق';
       default:           return 'قيد الانتظار';
     }
   }
@@ -234,6 +235,11 @@ class _MissionCard extends StatelessWidget {
       case 'searching':  return const Color(0xFF2196F3);
       case 'matchFound': return const Color(0xFF00D995);
       case 'resolved':   return const Color(0xFF9E9E9E);
+      // legacy values
+      case 'active':     return const Color(0xFFFF9800);
+      case 'inProgress': return const Color(0xFF2196F3);
+      case 'found':      return const Color(0xFF00D995);
+      case 'closed':     return const Color(0xFF9E9E9E);
       default:           return const Color(0xFFFF9800);
     }
   }

@@ -20,6 +20,7 @@ class Report {
   final String childName;
   final String description;
   final String imageUrl;
+  final String clothingColor;
   final DateTime lastSeen;
   final String location;
   final double latitude;
@@ -35,6 +36,7 @@ class Report {
     required this.childName,
     required this.description,
     required this.imageUrl,
+    required this.clothingColor,
     required this.lastSeen,
     required this.location,
     required this.latitude,

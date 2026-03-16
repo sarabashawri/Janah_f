@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'mission_control_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -114,7 +115,20 @@ class MissionDetailsScreen extends StatelessWidget {
                                 width: double.infinity,
                                 height: 52,
                                 child: ElevatedButton.icon(
-                                  onPressed: guardianPhone.isNotEmpty ? () {} : null,
+                                  onPressed: guardianPhone.isNotEmpty
+                                      ? () async {
+                                          final uri = Uri(scheme: 'tel', path: guardianPhone);
+                                          if (await canLaunchUrl(uri)) {
+                                            await launchUrl(uri);
+                                          } else {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('تعذر فتح تطبيق الاتصال')),
+                                              );
+                                            }
+                                          }
+                                        }
+                                      : null,
                                   icon: const Icon(Icons.phone, color: Colors.white, size: 20),
                                   label: const Text('الاتصال بولي الأمر',
                                       style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
@@ -202,7 +216,7 @@ class MissionDetailsScreen extends StatelessWidget {
                                 elevation: 0,
                               ),
                               onPressed: () => Navigator.push(context,
-                                  MaterialPageRoute(builder: (_) => MissionControlScreen(reportId: reportId, startActive: true))),
+                                  MaterialPageRoute(builder: (_) => MissionControlScreen(reportId: reportId))),
                               child: const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -356,6 +370,11 @@ class _StatusBadge extends StatelessWidget {
       case 'searching':  return 'جاري البحث';
       case 'matchFound': return 'تم العثور';
       case 'resolved':   return 'تم الإغلاق';
+      // legacy Firestore values
+      case 'active':     return 'قيد الانتظار';
+      case 'inProgress': return 'جاري البحث';
+      case 'found':      return 'تم العثور';
+      case 'closed':     return 'تم الإغلاق';
       default:           return 'قيد الانتظار';
     }
   }
@@ -367,6 +386,11 @@ class _StatusBadge extends StatelessWidget {
       case 'searching':  return const Color(0xFF2196F3);
       case 'matchFound': return const Color(0xFF00D995);
       case 'resolved':   return const Color(0xFF9E9E9E);
+      // legacy Firestore values
+      case 'active':     return const Color(0xFFFF9800);
+      case 'inProgress': return const Color(0xFF2196F3);
+      case 'found':      return const Color(0xFF00D995);
+      case 'closed':     return const Color(0xFF9E9E9E);
       default:           return const Color(0xFFFF9800);
     }
   }

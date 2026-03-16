@@ -104,6 +104,123 @@ class _HomeDashboardState extends State<HomeDashboard> {
     }
   }
 
+  String _statusLabel(String? s) {
+    switch (s) {
+      case 'pending':    return 'قيد الانتظار';
+      case 'accepted':   return 'تم القبول';
+      case 'searching':  return 'جاري البحث';
+      case 'matchFound': return 'تم العثور';
+      case 'resolved':   return 'تم الإغلاق';
+      // legacy Firestore values
+      case 'active':     return 'قيد الانتظار';
+      case 'inProgress': return 'جاري البحث';
+      case 'found':      return 'تم العثور';
+      case 'closed':     return 'تم الإغلاق';
+      default:           return 'نشط';
+    }
+  }
+
+  Color _statusColor(String? s) {
+    switch (s) {
+      case 'pending':    return const Color(0xFFFF9800);
+      case 'accepted':   return const Color(0xFF2196F3);
+      case 'searching':  return const Color(0xFF2196F3);
+      case 'matchFound': return const Color(0xFF00D995);
+      case 'resolved':   return const Color(0xFF9E9E9E);
+      case 'active':     return const Color(0xFFFF9800);
+      case 'inProgress': return const Color(0xFF2196F3);
+      case 'found':      return const Color(0xFF00D995);
+      case 'closed':     return const Color(0xFF9E9E9E);
+      default:           return const Color(0xFF00D995);
+    }
+  }
+
+  Widget _buildActiveReportCard(DocumentSnapshot report) {
+    final data = report.data() as Map<String, dynamic>;
+    final statusStr = data['status'] as String? ?? '';
+    final sColor = _statusColor(statusStr);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: sColor, width: 1.5),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const CircleAvatar(
+                radius: 22,
+                backgroundColor: Color(0xFFB0BEC5),
+                child: Icon(Icons.person, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data['childName'] ?? '',
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, size: 14, color: Color(0xFFEF5350)),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            data['location'] ?? '',
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF757575)),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: sColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  _statusLabel(statusStr),
+                  style: const TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: () => Navigator.of(context).pushNamed(
+              '/guardian/report-details',
+              arguments: report.id,
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('عرض التفاصيل',
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF3D5A6C))),
+                Icon(Icons.arrow_forward, size: 16, color: Color(0xFF3D5A6C)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -311,8 +428,11 @@ class _HomeDashboardState extends State<HomeDashboard> {
                               stream: FirebaseFirestore.instance
                                   .collection('reports')
                                   .where('guardianId', isEqualTo: _userId)
-                                  .where('status', whereIn: ['pending', 'accepted', 'searching'])
-                                  .limit(1)
+                                  .where('status', whereIn: [
+                                    'pending', 'accepted', 'searching',
+                                    'active', 'inProgress',
+                                  ])
+                                  .limit(3)
                                   .snapshots(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -327,79 +447,14 @@ class _HomeDashboardState extends State<HomeDashboard> {
                                     ),
                                   );
                                 }
-                                final report = snapshot.data!.docs.first;
-                                final data = report.data() as Map<String, dynamic>;
-                                return Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE3F2FD),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: const Color(0xFF00D995), width: 2),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          const CircleAvatar(
-                                            radius: 22,
-                                            backgroundColor: Color(0xFFB0BEC5),
-                                            child: Icon(Icons.person, color: Colors.white, size: 24),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                data['childName'] ?? '',
-                                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Row(
-                                                children: [
-                                                  const Icon(Icons.location_on, size: 14, color: Color(0xFFEF5350)),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    data['location'] ?? '',
-                                                    style: const TextStyle(fontSize: 12, color: Color(0xFF757575)),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                          const Spacer(),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF00D995),
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
-                                            child: const Text(
-                                              'نشط',
-                                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      const Divider(height: 1),
-                                      const SizedBox(height: 12),
-                                      InkWell(
-                                        onTap: () {
-                                          Navigator.of(context).pushNamed(
-                                            '/guardian/report-details',
-                                            arguments: report.id,
-                                          );
-                                        },
-                                        child: const Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text('عرض التفاصيل', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF3D5A6C))),
-                                            Icon(Icons.arrow_forward, size: 16, color: Color(0xFF3D5A6C)),
-                                          ],
-                                        ),
-                                      ),
+                                final docs = snapshot.data!.docs;
+                                return Column(
+                                  children: [
+                                    for (int i = 0; i < docs.length; i++) ...[
+                                      if (i > 0) const SizedBox(height: 10),
+                                      _buildActiveReportCard(docs[i]),
                                     ],
-                                  ),
+                                  ],
                                 );
                               },
                             ),
@@ -461,8 +516,9 @@ class _HomeDashboardState extends State<HomeDashboard> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE3F2FD),
+                    color: const Color(0xFFF4EFEB),
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE0D8D0)),
                   ),
                   child: const Text(
                     'طفلكم تحت جناحنا\nولن يرتاح الجناح حتى تتحقق لحظة العودة',

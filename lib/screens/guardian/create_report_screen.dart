@@ -169,11 +169,12 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // إشعار لفريق الإنقاذ
+      // إشعار للولي بتأكيد تقديم البلاغ
       await FirebaseFirestore.instance.collection('notifications').add({
-        'type': 'newReport',
-        'title': 'بلاغ جديد: ${_childNameController.text.trim()}',
-        'description': 'تم رفع بلاغ جديد عن طفل مفقود في ${_locationController.text.trim()}',
+        'guardianId': user.uid,
+        'type': 'reportSubmitted',
+        'title': 'تم تقديم البلاغ',
+        'description': 'جارٍ البحث عن ${_childNameController.text.trim()} — سنُخطرك فور وجود تحديث',
         'isRead': false,
         'createdAt': FieldValue.serverTimestamp(),
       });

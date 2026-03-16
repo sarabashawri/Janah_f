@@ -164,7 +164,7 @@ class ReportDetailsScreen extends StatelessWidget {
                                   color: const Color(0xFF9E9E9E),
                                   isLast: status == 'pending',
                                 ),
-                                if (status != 'pending') ...[
+                                if (status != 'pending' && status != 'active') ...[
                                   _buildTimelineItem(
                                     title: 'تم القبول',
                                     description: 'تم قبول البلاغ من قبل فريق الإنقاذ',
@@ -174,17 +174,17 @@ class ReportDetailsScreen extends StatelessWidget {
                                     isLast: status == 'accepted',
                                   ),
                                 ],
-                                if (status == 'searching' || status == 'matchFound' || status == 'resolved') ...[
+                                if (status == 'searching' || status == 'inProgress' || status == 'matchFound' || status == 'found' || status == 'resolved' || status == 'closed') ...[
                                   _buildTimelineItem(
                                     title: 'بدأ فريق الإنقاذ البحث',
                                     description: 'تم الموافقة على عملية البحث',
                                     time: '',
                                     icon: Icons.people,
                                     color: const Color(0xFF2196F3),
-                                    isLast: status == 'searching',
+                                    isLast: status == 'searching' || status == 'inProgress',
                                   ),
                                 ],
-                                if (status == 'matchFound') ...[
+                                if (status == 'matchFound' || status == 'found') ...[
                                   _buildTimelineItem(
                                     title: 'تم العثور على الطفل',
                                     description: 'تم التحقق من مطابقة الوجه',
@@ -194,7 +194,7 @@ class ReportDetailsScreen extends StatelessWidget {
                                     isLast: true,
                                   ),
                                 ],
-                                if (status == 'resolved') ...[
+                                if (status == 'resolved' || status == 'closed') ...[
                                   _buildTimelineItem(
                                     title: 'تم إغلاق البلاغ',
                                     description: 'تم إغلاق البلاغ بعد التحقق',
@@ -210,7 +210,7 @@ class ReportDetailsScreen extends StatelessWidget {
                           const SizedBox(height: 24),
 
                           // ── بطاقة المطابقة النهائية ──
-                          if (status == 'matchFound') ...[
+                          if (status == 'matchFound' || status == 'found') ...[
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(20),
@@ -266,6 +266,11 @@ class ReportDetailsScreen extends StatelessWidget {
       case 'searching':  return const Color(0xFF2196F3);
       case 'matchFound': return const Color(0xFF00D995);
       case 'resolved':   return const Color(0xFF9E9E9E);
+      // legacy values
+      case 'active':     return const Color(0xFFFF9800);
+      case 'inProgress': return const Color(0xFF2196F3);
+      case 'found':      return const Color(0xFF00D995);
+      case 'closed':     return const Color(0xFF9E9E9E);
       default:           return const Color(0xFFFF9800);
     }
   }
@@ -277,6 +282,11 @@ class ReportDetailsScreen extends StatelessWidget {
       case 'searching':  return 'جاري البحث';
       case 'matchFound': return 'تم العثور';
       case 'resolved':   return 'تم الإغلاق';
+      // legacy values
+      case 'active':     return 'قيد الانتظار';
+      case 'inProgress': return 'جاري البحث';
+      case 'found':      return 'تم العثور';
+      case 'closed':     return 'تم الإغلاق';
       default:           return 'قيد الانتظار';
     }
   }

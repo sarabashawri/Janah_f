@@ -693,27 +693,55 @@ class _MissionControlScreenState extends State<MissionControlScreen>
                       children: [
                         const SizedBox(height: 4),
 
-                        // Emergency landing
-                        SizedBox(
-                          width: double.infinity,
-                          height: 60,
-                          child: ElevatedButton.icon(
-                            onPressed: _emergencyLanding,
-                            icon: const Icon(Icons.emergency_outlined,
-                                color: Colors.white, size: 24),
-                            label: const Text('هبوط طارئ',
-                                style: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                    letterSpacing: 1)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _red,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16)),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              elevation: 0,
-                            ),
+                        // Live video feed — PRIMARY element, shown first
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4))
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(children: [
+                                Icon(
+                                  _videoSource == VideoSource.tello
+                                      ? Icons.flight
+                                      : Icons.laptop,
+                                  color: _navy,
+                                  size: 18),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _videoSource == VideoSource.tello
+                                      ? 'بث مباشر من الدرون'
+                                      : 'بث مباشر من كاميرا اللابتوب',
+                                  style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700)),
+                              ]),
+                              const SizedBox(height: 12),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 240,
+                                  child: _MjpegView(
+                                    url: _videoSource == VideoSource.laptop
+                                        ? FlaskApiService.laptopFeedUrl
+                                        : FlaskApiService.videoFeedUrl,
+                                    onFrame: (f) {
+                                      _latestFrame = f;
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
 
@@ -763,7 +791,7 @@ class _MissionControlScreenState extends State<MissionControlScreen>
                               ),
                               const Divider(height: 1),
                               SizedBox(
-                                height: 220,
+                                height: 280,
                                 child: StreamBuilder<QuerySnapshot>(
                                   stream: FirebaseFirestore.instance
                                       .collection('mission_messages')
@@ -939,55 +967,27 @@ class _MissionControlScreenState extends State<MissionControlScreen>
 
                         const SizedBox(height: 16),
 
-                        // Live video feed
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4))
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(children: [
-                                Icon(
-                                  _videoSource == VideoSource.tello
-                                      ? Icons.flight
-                                      : Icons.laptop,
-                                  color: _navy,
-                                  size: 18),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _videoSource == VideoSource.tello
-                                      ? 'بث مباشر من الدرون'
-                                      : 'بث مباشر من كاميرا اللابتوب',
-                                  style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700)),
-                              ]),
-                              const SizedBox(height: 12),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(14),
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  height: 200,
-                                  child: _MjpegView(
-                                    url: _videoSource == VideoSource.laptop
-                                        ? FlaskApiService.laptopFeedUrl
-                                        : FlaskApiService.videoFeedUrl,
-                                    onFrame: (f) {
-                                      _latestFrame = f;
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ],
+                        // Emergency landing — at the bottom, not blocking the view
+                        SizedBox(
+                          width: double.infinity,
+                          height: 60,
+                          child: ElevatedButton.icon(
+                            onPressed: _emergencyLanding,
+                            icon: const Icon(Icons.emergency_outlined,
+                                color: Colors.white, size: 24),
+                            label: const Text('هبوط طارئ',
+                                style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: 1)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _red,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              elevation: 0,
+                            ),
                           ),
                         ),
 
@@ -1005,7 +1005,7 @@ class _MissionControlScreenState extends State<MissionControlScreen>
                                   borderRadius: BorderRadius.circular(12)),
                               elevation: 0,
                             ),
-                            child: const Text('المتابعة إلى التفاصيل',
+                            child: const Text('العودة إلى التفاصيل',
                                 style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,

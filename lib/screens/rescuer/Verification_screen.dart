@@ -255,7 +255,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                             child: Column(
                                               children: [
                                                 Container(
-                                                  height: 130,
+                                                  height: 180,
                                                   decoration: BoxDecoration(color: const Color(0xFFE8E8E8), borderRadius: BorderRadius.circular(12)),
                                                   clipBehavior: Clip.antiAlias,
                                                   child: imageBase64.isNotEmpty
@@ -281,7 +281,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                                 Stack(
                                                   children: [
                                                     Container(
-                                                      height: 130,
+                                                      height: 180,
                                                       decoration: BoxDecoration(color: const Color(0xFFE8E8E8), borderRadius: BorderRadius.circular(12)),
                                                       clipBehavior: Clip.antiAlias,
                                                       child: widget.capturedImageBase64 != null && widget.capturedImageBase64!.isNotEmpty
@@ -297,7 +297,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                                       child: Container(
                                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                         decoration: BoxDecoration(color: _red, borderRadius: BorderRadius.circular(6)),
-                                                        child: const Text('LIVE', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
+                                                        child: const Text('من الدرون', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
                                                       ),
                                                     ),
                                                   ],
@@ -361,7 +361,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                       const SizedBox(height: 8),
                                       _AiReason(text: 'تطابق ملامح الوجه: ${widget.matchScore}%'),
                                       _AiReason(text: 'تطابق الملابس: ${widget.colorMatch ? "مطابق ✓" : "غير مطابق ✗"}'),
-                                      const _AiReason(text: 'الموقع قريب من آخر ظهور مسجل'),
+                                      const _AiReason(text: 'الطفل رُصد في منطقة البحث'),
                                       const SizedBox(height: 12),
                                       Container(
                                         padding: const EdgeInsets.all(12),

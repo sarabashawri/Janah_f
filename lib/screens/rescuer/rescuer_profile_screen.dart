@@ -504,12 +504,9 @@ class _NotificationsSettingsScreenState extends State<NotificationsSettingsScree
                   SizedBox(
                     width: double.infinity, height: 52,
                     child: ElevatedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ الإعدادات'), backgroundColor: kGreen));
-                        Navigator.pop(context);
-                      },
+                      onPressed: () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(backgroundColor: kPrimary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      child: const Text('حفظ الإعدادات', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                      child: const Text('إغلاق', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
                     ),
                   ),
                 ]),

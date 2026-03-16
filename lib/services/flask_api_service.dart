@@ -85,7 +85,8 @@ class FlaskApiService {
 
     // Attach metadata fields
     req.fields['name'] = (report['childName'] as String?) ?? '';
-    req.fields['clothing_color'] = (report['clothingColor'] as String?) ?? '';
+    req.fields['clothing_color'] =
+        _colorToEnglish((report['clothingColor'] as String?) ?? '');
     // Handle both Guardian ('description') and Rescuer ('extraDescription')
     req.fields['description'] =
         ((report['description'] ?? report['extraDescription']) as String?) ?? '';
@@ -207,6 +208,28 @@ class FlaskApiService {
   // ─────────────────────────────────────────────
   // Video Feed URL
   // ─────────────────────────────────────────────
+
+  // ─────────────────────────────────────────────
+  // Color Mapping — Arabic UI → English CV pipeline
+  // ─────────────────────────────────────────────
+
+  /// Converts Arabic clothing color label (stored by create_report_screen)
+  /// to the English string expected by the Flask/CV backend.
+  static String _colorToEnglish(String arabic) {
+    const map = {
+      'أسود':    'black',
+      'رمادي':   'gray',
+      'أبيض':    'white',
+      'أحمر':    'red',
+      'برتقالي': 'orange',
+      'أصفر':    'yellow',
+      'أخضر':    'green',
+      'أزرق':    'blue',
+      'بنفسجي':  'purple',
+      'وردي':    'pink',
+    };
+    return map[arabic] ?? arabic;
+  }
 
   /// MJPEG live video feed — drone camera
   static String get videoFeedUrl => '$baseUrl/robot-pov/sim_tello';
