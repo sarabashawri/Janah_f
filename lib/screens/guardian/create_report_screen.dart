@@ -153,7 +153,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
       final guardianName = userDoc.data()?['name'] ?? '';
       final guardianPhone = userDoc.data()?['phone'] ?? '';
 
-      await FirebaseFirestore.instance.collection('reports').add({
+      final reportRef = await FirebaseFirestore.instance.collection('reports').add({
         'guardianId': user.uid,
         'guardianName': guardianName,
         'guardianPhone': guardianPhone,
@@ -172,6 +172,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
       // إشعار للولي بتأكيد تقديم البلاغ
       await FirebaseFirestore.instance.collection('notifications').add({
         'guardianId': user.uid,
+        'reportId': reportRef.id,
         'type': 'reportSubmitted',
         'title': 'تم تقديم البلاغ',
         'description': 'جارٍ البحث عن ${_childNameController.text.trim()} — سنُخطرك فور وجود تحديث',
