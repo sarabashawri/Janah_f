@@ -270,7 +270,10 @@ class _HomeDashboardState extends State<HomeDashboard> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('البلاغات النشطة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                          TextButton(onPressed: () {}, child: const Text('عرض الكل', style: TextStyle(fontSize: 13, color: Color(0xFF3D5A6C)))),
+                          TextButton(
+                            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MissionsListScreen())),
+                            child: const Text('عرض الكل', style: TextStyle(fontSize: 13, color: Color(0xFF3D5A6C))),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
