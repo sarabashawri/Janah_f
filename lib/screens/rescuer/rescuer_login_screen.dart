@@ -140,7 +140,7 @@ class _RescuerLoginScreenState extends State<RescuerLoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'رقم الهاتف / البريد',
+                            'البريد الإلكتروني',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -153,10 +153,10 @@ class _RescuerLoginScreenState extends State<RescuerLoginScreen> {
                             textDirection: TextDirection.ltr,
                             textAlign: TextAlign.right,
                             decoration: InputDecoration(
-                              hintText: 'أدخل رقم الهاتف أو البريد الإلكتروني',
+                              hintText: 'أدخل البريد الإلكتروني',
                               hintTextDirection: TextDirection.rtl,
                               hintStyle: const TextStyle(fontSize: 13),
-                              prefixIcon: const Icon(Icons.phone_outlined),
+                              prefixIcon: const Icon(Icons.email_outlined),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: const BorderSide(color: Color(0xFFE0E0E0)),

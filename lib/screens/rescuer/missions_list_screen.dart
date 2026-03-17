@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../models/report.dart';
 import 'mission_details_screen.dart';
 
 class MissionsListScreen extends StatefulWidget {
@@ -212,35 +213,25 @@ class _MissionCard extends StatelessWidget {
   static const Color _navy = Color(0xFF3D5A6C);
   static const Color _bg   = Color(0xFFF4EFEB);
 
+  ReportStatus get _statusEnum => ReportStatus.fromFirestore(status);
+
   String get _statusLabel {
-    switch (status) {
-      case 'pending':    return 'قيد الانتظار';
-      case 'accepted':   return 'تم القبول';
-      case 'searching':  return 'جاري البحث';
-      case 'matchFound': return 'تم العثور';
-      case 'resolved':   return 'تم الإغلاق';
-      // legacy values
-      case 'active':     return 'قيد الانتظار';
-      case 'inProgress': return 'جاري البحث';
-      case 'found':      return 'تم العثور';
-      case 'closed':     return 'تم الإغلاق';
-      default:           return 'قيد الانتظار';
+    switch (_statusEnum) {
+      case ReportStatus.pending:    return 'قيد الانتظار';
+      case ReportStatus.accepted:   return 'تم القبول';
+      case ReportStatus.searching:  return 'جاري البحث';
+      case ReportStatus.matchFound: return 'تم العثور';
+      case ReportStatus.resolved:   return 'تم الإغلاق';
     }
   }
 
   Color get _statusColor {
-    switch (status) {
-      case 'pending':    return const Color(0xFFFF9800);
-      case 'accepted':   return const Color(0xFF2196F3);
-      case 'searching':  return const Color(0xFF2196F3);
-      case 'matchFound': return const Color(0xFF00D995);
-      case 'resolved':   return const Color(0xFF9E9E9E);
-      // legacy values
-      case 'active':     return const Color(0xFFFF9800);
-      case 'inProgress': return const Color(0xFF2196F3);
-      case 'found':      return const Color(0xFF00D995);
-      case 'closed':     return const Color(0xFF9E9E9E);
-      default:           return const Color(0xFFFF9800);
+    switch (_statusEnum) {
+      case ReportStatus.pending:    return const Color(0xFFFF9800);
+      case ReportStatus.accepted:   return const Color(0xFF2196F3);
+      case ReportStatus.searching:  return const Color(0xFF2196F3);
+      case ReportStatus.matchFound: return const Color(0xFF00D995);
+      case ReportStatus.resolved:   return const Color(0xFF9E9E9E);
     }
   }
 
