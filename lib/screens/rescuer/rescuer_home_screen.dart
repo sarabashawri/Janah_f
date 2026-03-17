@@ -17,11 +17,12 @@ class RescuerHomeScreen extends StatefulWidget {
 
 class _RescuerHomeScreenState extends State<RescuerHomeScreen> {
   int _selectedIndex = 0;
-  final List<Widget> _screens = const [
-    HomeDashboard(),
-    MissionsListScreen(),
-    RescuerMapScreen(),
-    RescuerProfileScreen(),
+
+  List<Widget> get _screens => [
+    HomeDashboard(onViewAll: () => setState(() => _selectedIndex = 1)),
+    const MissionsListScreen(),
+    const RescuerMapScreen(),
+    const RescuerProfileScreen(),
   ];
 
   @override
@@ -50,7 +51,8 @@ class _RescuerHomeScreenState extends State<RescuerHomeScreen> {
 }
 
 class HomeDashboard extends StatefulWidget {
-  const HomeDashboard({super.key});
+  const HomeDashboard({super.key, this.onViewAll});
+  final VoidCallback? onViewAll;
   @override
   State<HomeDashboard> createState() => _HomeDashboardState();
 }
@@ -271,7 +273,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                         children: [
                           const Text('البلاغات النشطة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                           TextButton(
-                            onPressed: () => setState(() => _selectedIndex = 1),
+                            onPressed: widget.onViewAll,
                             child: const Text('عرض الكل', style: TextStyle(fontSize: 13, color: Color(0xFF3D5A6C))),
                           ),
                         ],
