@@ -213,7 +213,7 @@ class _MissionCard extends StatelessWidget {
   static const Color _navy = Color(0xFF3D5A6C);
   static const Color _bg   = Color(0xFFF4EFEB);
 
-  ReportStatus get _statusEnum => ReportStatus.fromFirestore(status);
+  ReportStatus get _statusEnum => ReportStatusX.fromFirestore(status);
 
   String get _statusLabel {
     switch (_statusEnum) {
