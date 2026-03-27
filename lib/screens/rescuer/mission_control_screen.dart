@@ -32,6 +32,7 @@ class _MissionControlScreenState extends State<MissionControlScreen>
   String _errorMessage = '';
   int _pollSeconds = 0;
   bool _isSending = false;
+  bool _missionApproved = false;
   VideoSource _videoSource = VideoSource.laptop;
   final List<_SuspiciousPoint> _suspiciousPoints = [];
   final List<_LocalImageMessage> _localImageMessages = [];
@@ -146,7 +147,68 @@ class _MissionControlScreenState extends State<MissionControlScreen>
     }
 
     setState(() => _setupPhase = _SetupPhase.ready);
-    _startAlertStream();
+    _showMissionApprovalDialog();
+  }
+
+  void _showMissionApprovalDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: const Row(children: [
+            Icon(Icons.check_circle_outline, color: Color(0xFF16C47F), size: 26),
+            SizedBox(width: 8),
+            Text('تأكيد بدء المهمة', style: TextStyle(fontWeight: FontWeight.w800)),
+          ]),
+          content: const Text(
+            'تمت تهيئة النظام بنجاح.\nبالموافقة ستبدأ الطائرة في تنفيذ الخطط تلقائياً دون الحاجة لموافقة إضافية.',
+            style: TextStyle(fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() => _setupPhase = _SetupPhase.idle);
+              },
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                try {
+                  await FlaskApiService.approvePlan();
+                  if (mounted) {
+                    setState(() => _missionApproved = true);
+                    _startAlertStream();
+                    await _writeMissionMessage(
+                      text: 'تم بدء المهمة ✅',
+                      isBot: true,
+                      isAlert: false,
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    setState(() {
+                      _setupPhase = _SetupPhase.error;
+                      _errorMessage = 'فشل إرسال الموافقة للخادم: $e\nتحقق من الاتصال وأعد المحاولة.';
+                    });
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF16C47F),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('موافق — ابدأ المهمة',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _startMission() => _initializeMission();
@@ -284,6 +346,22 @@ class _MissionControlScreenState extends State<MissionControlScreen>
       setState(() => _localImageMessages.add(
         _LocalImageMessage(imageBytes: img, createdAt: DateTime.now()),
       ));
+    }
+
+    // Save to Firestore so suspicious points persist if app closes
+    if (widget.reportId.isNotEmpty) {
+      FirebaseFirestore.instance
+          .collection('reports')
+          .doc(widget.reportId)
+          .collection('suspiciousPoints')
+          .add({
+        'matchScore': (cv['match_score'] as num?)?.toInt() ?? 0,
+        'colorMatch': cv['color_match'] as bool? ?? false,
+        'alertType': cv['alert_type'] as String? ?? 'candidate',
+        'capturedImageBase64': imgB64 ?? '',
+        'status': 'pending',
+        'detectedAt': FieldValue.serverTimestamp(),
+      });
     }
 
     setState(() {

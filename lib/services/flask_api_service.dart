@@ -2,16 +2,34 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// FlaskApiService — Janah SAR System
 ///
 /// Connects Flutter to the TypeFly Python Flask backend.
-///
-/// ← Change this IP to match the computer running TypeFly:
-/// (must be on the same WiFi network)
+/// IP is saved in SharedPreferences — change it from the rescuer profile screen.
 class FlaskApiService {
-  // ← Android emulator: 10.0.2.2 | Real device on WiFi: 192.168.1.9
-  static String baseUrl = 'http://10.0.2.2:50000';
+  static const _defaultUrl = 'http://10.0.2.2:50000';
+  static const _prefKey = 'flask_base_url';
+  static String baseUrl = _defaultUrl;
+
+  /// Load saved IP from SharedPreferences (call once in main.dart)
+  static Future<void> loadBaseUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    baseUrl = prefs.getString(_prefKey) ?? _defaultUrl;
+  }
+
+  /// Save new IP — validates format before saving
+  static Future<void> setBaseUrl(String ip) async {
+    final trimmed = ip.trim();
+    if (trimmed.isEmpty) throw Exception('عنوان الخادم لا يمكن أن يكون فارغاً');
+    final url = trimmed.startsWith('http') ? trimmed : 'http://$trimmed:50000';
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.hasAuthority) throw Exception('عنوان الخادم غير صحيح: $trimmed');
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefKey, url);
+    baseUrl = url;
+  }
 
   // ─────────────────────────────────────────────
   // Phase 1 — Health Check
@@ -243,29 +261,32 @@ class FlaskApiService {
 
   /// POST /confirm-target
   static Future<void> confirmTarget() async {
-    try {
-      await http
-          .post(Uri.parse('$baseUrl/confirm-target'))
-          .timeout(const Duration(seconds: 5));
-    } catch (_) {}
+    final res = await http
+        .post(Uri.parse('$baseUrl/confirm-target'))
+        .timeout(const Duration(seconds: 5));
+    if (res.statusCode != 200) {
+      throw Exception('فشل تأكيد الهدف (${res.statusCode})');
+    }
   }
 
   /// POST /reject-target
   static Future<void> rejectTarget() async {
-    try {
-      await http
-          .post(Uri.parse('$baseUrl/reject-target'))
-          .timeout(const Duration(seconds: 5));
-    } catch (_) {}
+    final res = await http
+        .post(Uri.parse('$baseUrl/reject-target'))
+        .timeout(const Duration(seconds: 5));
+    if (res.statusCode != 200) {
+      throw Exception('فشل رفض الهدف (${res.statusCode})');
+    }
   }
 
-  /// POST /approve-plan
+  /// POST /approve-plan — call ONCE per mission only
   static Future<void> approvePlan() async {
-    try {
-      await http
-          .post(Uri.parse('$baseUrl/approve-plan'))
-          .timeout(const Duration(seconds: 5));
-    } catch (_) {}
+    final res = await http
+        .post(Uri.parse('$baseUrl/approve-plan'))
+        .timeout(const Duration(seconds: 5));
+    if (res.statusCode != 200) {
+      throw Exception('فشل الموافقة على المهمة (${res.statusCode})');
+    }
   }
 
   // ─────────────────────────────────────────────

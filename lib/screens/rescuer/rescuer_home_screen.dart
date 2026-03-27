@@ -60,7 +60,6 @@ class HomeDashboard extends StatefulWidget {
 class _HomeDashboardState extends State<HomeDashboard> {
   final _db = FirebaseFirestore.instance;
   String _rescuerName = '';
-  String _teamNumber = '';
 
   @override
   void initState() {
@@ -75,7 +74,6 @@ class _HomeDashboardState extends State<HomeDashboard> {
     if (mounted && doc.exists) {
       setState(() {
         _rescuerName = doc.data()?['name'] ?? 'المنقذ';
-        _teamNumber = doc.data()?['teamNumber'] ?? '';
       });
     }
   }
@@ -116,8 +114,8 @@ class _HomeDashboardState extends State<HomeDashboard> {
                             Text(_rescuerName.isEmpty ? '...' : _rescuerName,
                                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
                             const SizedBox(height: 4),
-                            Text(_teamNumber.isNotEmpty ? 'فريق الإنقاذ - $_teamNumber' : 'فريق الإنقاذ',
-                                style: const TextStyle(fontSize: 12, color: Colors.white60)),
+                            const Text('فريق الإنقاذ',
+                                style: TextStyle(fontSize: 12, color: Colors.white60)),
                           ],
                         ),
                       ],

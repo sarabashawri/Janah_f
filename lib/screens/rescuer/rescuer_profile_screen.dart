@@ -11,7 +11,6 @@ class RescuerProfileScreen extends StatefulWidget {
 class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
   bool _isAvailable = true;
   String _name = '';
-  String _team = '';
   String _dept = '';
   bool _loadingProfile = true;
   static const Color kPrimary = Color(0xFF3D5A6C);
@@ -30,7 +29,6 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
       final data = doc.data()!;
       setState(() {
         _name = data['name'] ?? '';
-        _team = data['teamNumber'] ?? '';
         _dept = data['department'] ?? 'قسم العمليات';
         _isAvailable = data['isAvailable'] ?? true;
         _loadingProfile = false;
@@ -91,7 +89,7 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                                     children: [
                                       Text(_name.isNotEmpty ? _name : 'المنقذ', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                                       const SizedBox(height: 4),
-                                      Text(_team.isNotEmpty ? 'فريق الإنقاذ - $_team' : 'فريق الإنقاذ', style: const TextStyle(fontSize: 13, color: Color(0xFF757575))),
+                                      const Text('فريق الإنقاذ', style: TextStyle(fontSize: 13, color: Color(0xFF757575))),
                                       const SizedBox(height: 2),
                                       Text(_dept, style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
                                     ],
@@ -354,7 +352,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _teamCtrl = TextEditingController();
   bool _loading = true;
   static const Color kPrimary = Color(0xFF3D5A6C);
 
@@ -362,7 +359,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() { super.initState(); _loadData(); }
 
   @override
-  void dispose() { _nameCtrl.dispose(); _phoneCtrl.dispose(); _teamCtrl.dispose(); super.dispose(); }
+  void dispose() { _nameCtrl.dispose(); _phoneCtrl.dispose(); super.dispose(); }
 
   Future<void> _loadData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -372,7 +369,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final data = doc.data()!;
       _nameCtrl.text = data['name'] ?? '';
       _phoneCtrl.text = data['phone'] ?? '';
-      _teamCtrl.text = data['teamNumber'] ?? '';
       setState(() => _loading = false);
     } else { setState(() => _loading = false); }
   }
@@ -386,7 +382,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         await FirebaseFirestore.instance.collection('users').doc(uid).update({
           'name': _nameCtrl.text.trim(),
           'phone': _phoneCtrl.text.trim(),
-          'teamNumber': _teamCtrl.text.trim(),
         });
       }
       if (mounted) {
@@ -421,8 +416,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           _field(_nameCtrl, 'الاسم الكامل', Icons.person_outline),
                           const SizedBox(height: 14),
                           _field(_phoneCtrl, 'رقم الجوال', Icons.phone_outlined, isPhone: true),
-                          const SizedBox(height: 14),
-                          _field(_teamCtrl, 'رقم الفريق', Icons.group_outlined),
                           const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity, height: 52,

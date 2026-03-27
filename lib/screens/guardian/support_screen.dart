@@ -133,7 +133,7 @@ class _SupportScreenState extends State<SupportScreen> {
                               icon: Icons.phone_outlined,
                               label: 'اتصال',
                               color: const Color(0xFF2196F3),
-                              onTap: () => _launchUrl('tel:+966501234567'),
+                              onTap: () => _launchUrl('tel:+966502577084'),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -142,7 +142,7 @@ class _SupportScreenState extends State<SupportScreen> {
                               icon: Icons.chat_bubble_outline,
                               label: 'واتساب',
                               color: const Color(0xFF00BFA5),
-                              onTap: () => _launchUrl('https://wa.me/966501234567'),
+                              onTap: () => _launchUrl('https://wa.me/966502577084'),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -151,7 +151,7 @@ class _SupportScreenState extends State<SupportScreen> {
                               icon: Icons.email_outlined,
                               label: 'بريد',
                               color: const Color(0xFFE91E63),
-                              onTap: () => _launchUrl('mailto:support@janah.sa'),
+                              onTap: () => _launchUrl('mailto:janahsupport@gmail.com'),
                             ),
                           ),
                         ],
@@ -201,7 +201,7 @@ class _SupportScreenState extends State<SupportScreen> {
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    '+966 50 123 4567',
+                                    '+966 50 257 7084',
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
@@ -258,7 +258,7 @@ class _SupportScreenState extends State<SupportScreen> {
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    'support@janah.sa',
+                                    'janahsupport@gmail.com',
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
