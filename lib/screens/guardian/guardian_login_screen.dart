@@ -56,6 +56,9 @@ class _GuardianLoginScreenState extends State<GuardianLoginScreen> {
               case 'network-request-failed':
                 msg = 'تحقق من اتصال الإنترنت';
                 break;
+              case 'wrong-user-type':
+                msg = e.message ?? 'هذا الحساب غير مخصص لولي الأمر';
+                break;
               default:
                 msg = 'خطأ (${e.code}): ${e.message ?? ''}';
             }
