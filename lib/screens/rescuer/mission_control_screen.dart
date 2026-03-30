@@ -267,6 +267,21 @@ class _MissionControlScreenState extends State<MissionControlScreen>
           try {
             final bytes = base64Decode(b64);
             if (mounted) {
+              // Save to Firestore for persistence
+              if (widget.reportId.isNotEmpty) {
+                FirebaseFirestore.instance
+                    .collection('reports')
+                    .doc(widget.reportId)
+                    .collection('suspiciousPoints')
+                    .add({
+                  'matchScore': 0,
+                  'colorMatch': false,
+                  'alertType': 'manual',
+                  'capturedImageBase64': b64,
+                  'status': 'pending',
+                  'detectedAt': FieldValue.serverTimestamp(),
+                });
+              }
               setState(() {
                 _localImageMessages.add(
                   _LocalImageMessage(imageBytes: bytes, createdAt: DateTime.now()),
