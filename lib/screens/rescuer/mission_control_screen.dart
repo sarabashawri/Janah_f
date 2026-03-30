@@ -56,7 +56,7 @@ class _MissionControlScreenState extends State<MissionControlScreen>
     if (_cache.isNotEmpty) _suspiciousPoints.addAll(_cache);
     if (widget.startActive) {
       WidgetsBinding.instance
-          .addPostFrameCallback((_) => _initializeMission());
+          .addPostFrameCallback((_) => _checkAndInitMission());
     }
   }
 
@@ -79,6 +79,33 @@ class _MissionControlScreenState extends State<MissionControlScreen>
         );
       }
     });
+  }
+
+  // ─── Check if mission already started → skip setup if so ─────────────────
+  Future<void> _checkAndInitMission() async {
+    if (!mounted || widget.reportId.isEmpty) {
+      _initializeMission();
+      return;
+    }
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('reports')
+          .doc(widget.reportId)
+          .get();
+      final status = doc.data()?['status'] as String? ?? '';
+      if (status == 'searching' || status == 'inProgress') {
+        // Mission already approved — reconnect stream directly
+        if (mounted) {
+          setState(() {
+            _missionApproved = true;
+            _setupPhase = _SetupPhase.ready;
+          });
+          _startAlertStream();
+        }
+        return;
+      }
+    } catch (_) {}
+    _initializeMission();
   }
 
   // ─── Phase 1 + 2 — Initialize Mission ────────────────────────────────────
@@ -164,7 +191,7 @@ class _MissionControlScreenState extends State<MissionControlScreen>
             Text('تأكيد بدء المهمة', style: TextStyle(fontWeight: FontWeight.w800)),
           ]),
           content: const Text(
-            'تمت تهيئة النظام بنجاح.\nبالموافقة ستبدأ الطائرة في تنفيذ الخطط تلقائياً دون الحاجة لموافقة إضافية.',
+            'النظام جاهز. هل تبدأ المهمة؟',
             style: TextStyle(fontSize: 14),
           ),
           actions: [
