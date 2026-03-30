@@ -1170,22 +1170,48 @@ class _MissionControlScreenState extends State<MissionControlScreen>
                                         fontWeight: FontWeight.w700)),
                               ]),
                               const SizedBox(height: 12),
-                              if (_suspiciousPoints.isEmpty)
-                                const Center(
-                                  child: Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 8),
-                                    child: Text(
-                                      'لا توجد نقاط اشتباه بعد',
-                                      style: TextStyle(
-                                          color: Color(0xFF9E9E9E),
-                                          fontSize: 13),
-                                    ),
-                                  ),
-                                )
-                              else
-                                ..._suspiciousPoints
-                                    .map((p) => _buildSuspiciousCard(p)),
+                                  StreamBuilder<QuerySnapshot>(
+                                stream: widget.reportId.isNotEmpty
+                                    ? FirebaseFirestore.instance
+                                        .collection('reports')
+                                        .doc(widget.reportId)
+                                        .collection('suspiciousPoints')
+                                        .orderBy('detectedAt', descending: true)
+                                        .snapshots()
+                                    : const Stream.empty(),
+                                builder: (context, snap) {
+                                  final docs = snap.data?.docs ?? [];
+                                  if (docs.isEmpty) {
+                                    return const Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 8),
+                                        child: Text(
+                                          'لا توجد نقاط اشتباه بعد',
+                                          style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 13),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return Column(
+                                    children: docs.asMap().entries.map((entry) {
+                                      final idx = entry.key;
+                                      final doc = entry.value;
+                                      final d = doc.data() as Map<String, dynamic>;
+                                      final ts = d['detectedAt'];
+                                      return _buildSuspiciousCard(_SuspiciousPoint(
+                                        docId: doc.id,
+                                        number: docs.length - idx,
+                                        matchScore: (d['matchScore'] as num?)?.toInt() ?? 0,
+                                        colorMatch: d['colorMatch'] as bool? ?? false,
+                                        alertType: d['alertType'] as String? ?? 'candidate',
+                                        detectedAt: ts is Timestamp ? ts.toDate() : DateTime.now(),
+                                        status: d['status'] as String? ?? 'pending',
+                                        capturedImageBase64: d['capturedImageBase64'] as String?,
+                                      ));
+                                    }).toList(),
+                                  );
+                                },
+                              ),
                             ],
                           ),
                         ),
@@ -1286,6 +1312,14 @@ class _MissionControlScreenState extends State<MissionControlScreen>
                     );
                     if (result != null && mounted) {
                       setState(() => point.status = result);
+                      if (point.docId != null && widget.reportId.isNotEmpty) {
+                        FirebaseFirestore.instance
+                            .collection('reports')
+                            .doc(widget.reportId)
+                            .collection('suspiciousPoints')
+                            .doc(point.docId!)
+                            .update({'status': result});
+                      }
                     }
                   },
                   child: Container(
@@ -1384,6 +1418,7 @@ class _MissionControlScreenState extends State<MissionControlScreen>
 // ─── Data Models ──────────────────────────────────────────────────────────────
 
 class _SuspiciousPoint {
+  final String? docId;
   final int number;
   final int matchScore;
   final bool colorMatch;
@@ -1393,6 +1428,7 @@ class _SuspiciousPoint {
   final String? capturedImageBase64;
 
   _SuspiciousPoint({
+    this.docId,
     required this.number,
     required this.matchScore,
     required this.colorMatch,
