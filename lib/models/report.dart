@@ -8,10 +8,10 @@ extension ReportStatusX on ReportStatus {
   static ReportStatus fromFirestore(String? s) => switch (s) {
     'pending'                    => ReportStatus.pending,
     'accepted'                   => ReportStatus.accepted,
-    'searching' || 'inProgress'  => ReportStatus.searching,
-    'matchFound' || 'found'      => ReportStatus.matchFound,
-    'resolved'  || 'closed'      => ReportStatus.resolved,
-    _                            => ReportStatus.pending, // 'active' + unknowns
+    'searching' || 'inProgress' || 'active' => ReportStatus.searching,
+    'matchFound' || 'found'                => ReportStatus.matchFound,
+    'resolved'  || 'closed'               => ReportStatus.resolved,
+    _                                      => ReportStatus.pending,
   };
 }
 

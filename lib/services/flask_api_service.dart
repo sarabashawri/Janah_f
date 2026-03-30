@@ -112,7 +112,7 @@ class FlaskApiService {
 
     // 4. Send and await response
     final streamedResponse =
-        await req.send().timeout(const Duration(minutes: 45));
+        await req.send().timeout(const Duration(minutes: 10));
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200) {
@@ -166,6 +166,8 @@ class FlaskApiService {
           .timeout(const Duration(seconds: 10));
 
       yield* _parseSSE(streamed.stream);
+    } catch (_) {
+      rethrow;
     } finally {
       client.close();
     }
@@ -215,7 +217,6 @@ class FlaskApiService {
         await Future.delayed(const Duration(seconds: 3));
       } catch (_) {
         // On any error, wait and reconnect
-        client.close();
         await Future.delayed(const Duration(seconds: 3));
       } finally {
         client.close();
