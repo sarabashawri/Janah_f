@@ -33,11 +33,11 @@ class _RescuerMapScreenState extends State<RescuerMapScreen> {
     Query query = FirebaseFirestore.instance.collection('reports');
     if (_selectedFilter != 'الكل') {
       final statusMap = {
-        'قيد الانتظار': 'pending',
-        'جاري البحث': 'searching',
-        'تم العثور': 'matchFound',
+        'قيد الانتظار': ['pending', 'active'],
+        'جاري البحث': ['searching', 'inProgress'],
+        'تم العثور': ['matchFound', 'found'],
       };
-      query = query.where('status', isEqualTo: statusMap[_selectedFilter]);
+      query = query.where('status', whereIn: statusMap[_selectedFilter]);
     }
 
     final snap = await query.get();

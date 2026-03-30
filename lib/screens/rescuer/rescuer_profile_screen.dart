@@ -128,8 +128,8 @@ class _RescuerProfileScreenState extends State<RescuerProfileScreen> {
                               stream: FirebaseFirestore.instance.collection('reports').snapshots(),
                               builder: (context, snap) {
                                 final docs = snap.data?.docs ?? [];
-                                final found = docs.where((d) => (d.data() as Map)['status'] == 'matchFound').length;
-                                final active = docs.where((d) => (d.data() as Map)['status'] == 'searching').length;
+                                final found = docs.where((d) => ['matchFound', 'found', 'resolved', 'closed'].contains((d.data() as Map)['status'])).length;
+                                final active = docs.where((d) => ['searching', 'active', 'inProgress'].contains((d.data() as Map)['status'])).length;
                                 final total = docs.length;
                                 final rate = total == 0 ? 0 : ((found / total) * 100).toInt();
 
