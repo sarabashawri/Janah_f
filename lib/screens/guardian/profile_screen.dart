@@ -160,6 +160,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   try {
                     final user = FirebaseAuth.instance.currentUser;
                     if (user != null) {
+                      final credential = EmailAuthProvider.credential(
+                        email: user.email!,
+                        password: oldPassController.text,
+                      );
+                      await user.reauthenticateWithCredential(credential);
                       await user.updatePassword(newPassController.text);
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(

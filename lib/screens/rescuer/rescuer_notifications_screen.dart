@@ -15,11 +15,12 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
 
   Stream<QuerySnapshot> get _stream => _db
       .collection('notifications')
+      .where('rescuerId', isEqualTo: _uid)
       .orderBy('createdAt', descending: true)
       .snapshots();
 
   Future<void> _markAllRead() async {
-    final snap = await _db.collection('notifications').where('isRead', isEqualTo: false).get();
+    final snap = await _db.collection('notifications').where('rescuerId', isEqualTo: _uid).where('isRead', isEqualTo: false).get();
     final batch = _db.batch();
     for (final doc in snap.docs) {
       batch.update(doc.reference, {'isRead': true});
@@ -125,7 +126,7 @@ class _RescuerNotificationsScreenState extends State<RescuerNotificationsScreen>
                   ),
                   const SizedBox(height: 6),
                   StreamBuilder<QuerySnapshot>(
-                    stream: _db.collection('notifications').where('isRead', isEqualTo: false).snapshots(),
+                    stream: _db.collection('notifications').where('rescuerId', isEqualTo: _uid).where('isRead', isEqualTo: false).snapshots(),
                     builder: (context, snap) {
                       final unread = snap.data?.docs.length ?? 0;
                       if (unread == 0) return const SizedBox.shrink();
