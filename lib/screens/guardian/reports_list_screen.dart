@@ -52,8 +52,8 @@ class _ReportsListScreenState extends State<ReportsListScreen>
                 builder: (context, snapshot) {
                   final docs = snapshot.data?.docs ?? [];
                   final total = docs.length;
-                  final active = docs.where((d) => ['pending', 'accepted', 'searching'].contains((d.data() as Map)['status'])).length;
-                  final closed = docs.where((d) => ['matchFound', 'resolved'].contains((d.data() as Map)['status'])).length;
+                  final active = docs.where((d) => ['pending', 'accepted', 'searching', 'active', 'inProgress'].contains((d.data() as Map)['status'])).length;
+                  final closed = docs.where((d) => ['matchFound', 'resolved', 'found', 'closed'].contains((d.data() as Map)['status'])).length;
 
                   return Container(
                     width: double.infinity,
@@ -153,9 +153,9 @@ class _ReportsListScreenState extends State<ReportsListScreen>
         .orderBy('createdAt', descending: true);
 
     if (statusFilter == 'active') {
-      query = query.where('status', whereIn: ['pending', 'accepted', 'searching']);
+      query = query.where('status', whereIn: ['pending', 'accepted', 'searching', 'active', 'inProgress']);
     } else {
-      query = query.where('status', whereIn: ['matchFound', 'resolved']);
+      query = query.where('status', whereIn: ['matchFound', 'resolved', 'found', 'closed']);
     }
 
     return StreamBuilder<QuerySnapshot>(
