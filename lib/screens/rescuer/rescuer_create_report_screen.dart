@@ -145,7 +145,7 @@ class _RescuerCreateReportScreenState extends State<RescuerCreateReportScreen> {
         'guardianPhone': _guardianPhoneController.text.trim(),
         'childName': _childNameController.text.trim(),
         'clothingColor': _selectedClothingColor,
-        'extraDescription': _extraDescController.text.trim(),
+        'description': _extraDescController.text.trim(),
         'location': _locationController.text.trim(),
         'latitude': _selectedLocation!.latitude,
         'longitude': _selectedLocation!.longitude,
