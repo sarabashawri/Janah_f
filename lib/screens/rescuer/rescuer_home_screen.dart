@@ -121,7 +121,7 @@ class _HomeDashboardState extends State<HomeDashboard> {
                       ],
                     ),
                     StreamBuilder<QuerySnapshot>(
-                      stream: _db.collection('notifications').where('isRead', isEqualTo: false).snapshots(),
+                      stream: _db.collection('notifications').where('rescuerId', isEqualTo: FirebaseAuth.instance.currentUser?.uid).where('isRead', isEqualTo: false).snapshots(),
                       builder: (context, snap) {
                         final unread = snap.data?.docs.length ?? 0;
                         return Stack(
