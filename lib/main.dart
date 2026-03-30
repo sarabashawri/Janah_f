@@ -23,6 +23,7 @@ import 'screens/guardian/about_screen.dart';
 
 // Rescuer imports
 import 'screens/rescuer/rescuer_login_screen.dart';
+import 'screens/rescuer/rescuer_forgot_password_screen.dart';
 import 'screens/rescuer/rescuer_home_screen.dart';
 import 'screens/rescuer/missions_list_screen.dart';
 import 'screens/rescuer/mission_details_screen.dart';
@@ -84,6 +85,7 @@ class JanahApp extends StatelessWidget {
         '/guardian/support': (context) => const SupportScreen(),
         '/guardian/about': (context) => const AboutScreen(),
         '/rescuer/login': (context) => const RescuerLoginScreen(),
+        '/rescuer/forgot-password': (context) => const RescuerForgotPasswordScreen(),
         '/rescuer/home': (context) => const RescuerHomeScreen(),
         '/rescuer/missions': (context) => const MissionsListScreen(),
         '/rescuer/mission-details': (context) => const MissionDetailsScreen(),
